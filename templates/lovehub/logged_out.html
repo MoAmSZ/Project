@@ -1,0 +1,12 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'dashboard' %}">{% translate 'Home' %}</a></div>{% endblock %}
+
+{% block content %}
+
+<p>{% translate "Thanks for spending some time with the app today." %}</p>
+
+<p><a href="{% url 'login' %}">{% translate 'Log in again' %}</a></p>
+
+{% endblock %} 

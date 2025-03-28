@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#ff6b6b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>{% block title %}اسمارت لاو هاب{% endblock %}</title>
+    
+    <!-- Bootstrap RTL CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts - Vazirmatn -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    
+    <style>
+        /* Base Theme Variables - Default Theme */
+        :root {
+            --primary-color: #ff6b6b;
+            --primary-gradient: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            --secondary-color: #4ecdc4;
+            --secondary-gradient: linear-gradient(135deg, #4ecdc4, #26de81);
+            --accent-color: #ffd166;
+            --accent-gradient: linear-gradient(135deg, #ffd166, #ffbd69);
+            --dark-color: #292f36;
+            --light-color: #f7f7f7;
+            --body-bg: #f8f9fa;
+            --body-color: #292f36;
+            --card-bg: #fff;
+            --card-border: #e9ecef;
+            --navbar-bg: #fff;
+            --sidebar-bg: #fff;
+            --input-bg: #fff;
+            --input-border: #ced4da;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --shadow-hover: rgba(0, 0, 0, 0.1);
+            --btn-hover-intensity: 0.9;
+            --font-size-base: 1rem;
+            --transition-speed: 0.3s;
+            --text-muted: #6c757d;
+            --border-radius: 10px;
+            --header-gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+        
+        /* Dark Theme */
+        .theme-dark {
+            --primary-color: #bb86fc;
+            --primary-gradient: linear-gradient(135deg, #bb86fc, #9775fa);
+            --secondary-color: #03dac6;
+            --secondary-gradient: linear-gradient(135deg, #03dac6, #38d9a9);
+            --accent-color: #ffb74d;
+            --accent-gradient: linear-gradient(135deg, #ffb74d, #ffa94d);
+            --dark-color: #121212;
+            --light-color: #333333;
+            --body-bg: #121212;
+            --body-color: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --card-border: #383838;
+            --navbar-bg: #1a1a1a;
+            --sidebar-bg: #1a1a1a;
+            --input-bg: #2d2d2d;
+            --input-border: #444;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --shadow-hover: rgba(0, 0, 0, 0.4);
+            --btn-hover-intensity: 0.8;
+            --text-muted: #adb5bd;
+            --header-gradient: linear-gradient(135deg, #bb86fc, #03dac6);
+        }
+        
+        /* Light Theme */
+        .theme-light {
+            --primary-color: #339af0;
+            --primary-gradient: linear-gradient(135deg, #339af0, #74c0fc);
+            --secondary-color: #51cf66;
+            --secondary-gradient: linear-gradient(135deg, #51cf66, #8ce99a);
+            --accent-color: #fcc419;
+            --accent-gradient: linear-gradient(135deg, #fcc419, #ffe066);
+            --dark-color: #343a40;
+            --light-color: #f8f9fa;
+            --body-bg: #ffffff;
+            --body-color: #343a40;
+            --card-bg: #fff;
+            --card-border: #e9ecef;
+            --navbar-bg: #fff;
+            --sidebar-bg: #fff;
+            --input-bg: #fff;
+            --input-border: #ced4da;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --shadow-hover: rgba(0, 0, 0, 0.1);
+            --btn-hover-intensity: 0.9;
+            --header-gradient: linear-gradient(135deg, #339af0, #51cf66);
+        }
+        
+        /* Nature Theme */
+        .theme-nature {
+            --primary-color: #51cf66;
+            --primary-gradient: linear-gradient(135deg, #51cf66, #69db7c);
+            --secondary-color: #94d82d;
+            --secondary-gradient: linear-gradient(135deg, #94d82d, #a9e34b);
+            --accent-color: #ffd43b;
+            --accent-gradient: linear-gradient(135deg, #ffd43b, #ffe066);
+            --dark-color: #2b8a3e;
+            --light-color: #ebfbee;
+            --body-bg: #f4faf5;
+            --body-color: #2b8a3e;
+            --card-bg: #fff;
+            --card-border: #d8f5de;
+            --navbar-bg: #fff;
+            --sidebar-bg: #ebfbee;
+            --input-bg: #fff;
+            --input-border: #b2f2bb;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --shadow-hover: rgba(0, 0, 0, 0.08);
+            --btn-hover-intensity: 0.9;
+            --header-gradient: linear-gradient(135deg, #51cf66, #94d82d);
+        }
+        
+        /* Romance Theme */
+        .theme-romance {
+            --primary-color: #f06595;
+            --primary-gradient: linear-gradient(135deg, #f06595, #f783ac);
+            --secondary-color: #cc5de8;
+            --secondary-gradient: linear-gradient(135deg, #cc5de8, #da77f2);
+            --accent-color: #ffc9c9;
+            --accent-gradient: linear-gradient(135deg, #ffc9c9, #ffd8d8);
+            --dark-color: #a61e4d;
+            --light-color: #fff0f6;
+            --body-bg: #fff5f7;
+            --body-color: #a61e4d;
+            --card-bg: #fff;
+            --card-border: #ffdeeb;
+            --navbar-bg: #fff;
+            --sidebar-bg: #fff0f6;
+            --input-bg: #fff;
+            --input-border: #ffbcd9;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --shadow-hover: rgba(0, 0, 0, 0.08);
+            --btn-hover-intensity: 0.9;
+            --header-gradient: linear-gradient(135deg, #f06595, #cc5de8);
+        }
+        
+        /* Royal Theme */
+        .theme-royal {
+            --primary-color: #7950f2;
+            --primary-gradient: linear-gradient(135deg, #7950f2, #9775fa);
+            --secondary-color: #4c6ef5;
+            --secondary-gradient: linear-gradient(135deg, #4c6ef5, #5c7cfa);
+            --accent-color: #fab005;
+            --accent-gradient: linear-gradient(135deg, #fab005, #fcc419);
+            --dark-color: #364fc7;
+            --light-color: #edf2ff;
+            --body-bg: #f3f0ff;
+            --body-color: #4c3c92;
+            --card-bg: #fff;
+            --card-border: #d0bfff;
+            --navbar-bg: #fff;
+            --sidebar-bg: #edf2ff;
+            --input-bg: #fff;
+            --input-border: #bac8ff;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --shadow-hover: rgba(0, 0, 0, 0.1);
+            --btn-hover-intensity: 0.9;
+            --header-gradient: linear-gradient(135deg, #7950f2, #4c6ef5);
+        }
+        
+        /* Ocean Theme */
+        .theme-ocean {
+            --primary-color: #1c7ed6;
+            --primary-gradient: linear-gradient(135deg, #1c7ed6, #339af0);
+            --secondary-color: #0ca678;
+            --secondary-gradient: linear-gradient(135deg, #0ca678, #20c997);
+            --accent-color: #66d9e8;
+            --accent-gradient: linear-gradient(135deg, #66d9e8, #99e9f2);
+            --dark-color: #0b4f7c;
+            --light-color: #e3fafc;
+            --body-bg: #e7f5ff;
+            --body-color: #1864ab;
+            --card-bg: #fff;
+            --card-border: #c5f6fa;
+            --navbar-bg: #fff;
+            --sidebar-bg: #e3fafc;
+            --input-bg: #fff;
+            --input-border: #a5d8ff;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --shadow-hover: rgba(0, 0, 0, 0.1);
+            --btn-hover-intensity: 0.9;
+            --header-gradient: linear-gradient(135deg, #1c7ed6, #0ca678);
+        }
+        
+        /* Sunset Theme */
+        .theme-sunset {
+            --primary-color: #f76707;
+            --primary-gradient: linear-gradient(135deg, #f76707, #ff922b);
+            --secondary-color: #c2255c;
+            --secondary-gradient: linear-gradient(135deg, #c2255c, #e64980);
+            --accent-color: #fcc419;
+            --accent-gradient: linear-gradient(135deg, #fcc419, #ffe066);
+            --dark-color: #c92a2a;
+            --light-color: #fff4e6;
+            --body-bg: #fff9db;
+            --body-color: #c92a2a;
+            --card-bg: #fff;
+            --card-border: #ffec99;
+            --navbar-bg: #fff;
+            --sidebar-bg: #fff4e6;
+            --input-bg: #fff;
+            --input-border: #ffda99;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --shadow-hover: rgba(0, 0, 0, 0.1);
+            --btn-hover-intensity: 0.9;
+            --header-gradient: linear-gradient(135deg, #f76707, #c2255c);
+        }
+        
+        /* Apply theme class based on user preference */
+        {% if request.user.theme.theme == 'dark' %}
+        body { 
+            --primary-color: #bb86fc;
+            --primary-gradient: linear-gradient(135deg, #bb86fc, #9775fa);
+            --secondary-color: #03dac6;
+            --secondary-gradient: linear-gradient(135deg, #03dac6, #38d9a9);
+            --accent-color: #ffb74d;
+            --accent-gradient: linear-gradient(135deg, #ffb74d, #ffa94d);
+            --dark-color: #121212;
+            --light-color: #333333;
+            --body-bg: #121212;
+            --body-color: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --card-border: #383838;
+            --navbar-bg: #1a1a1a;
+            --sidebar-bg: #1a1a1a;
+            --input-bg: #2d2d2d;
+            --input-border: #444;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --shadow-hover: rgba(0, 0, 0, 0.4);
+            --btn-hover-intensity: 0.8;
+            --text-muted: #adb5bd;
+            --header-gradient: linear-gradient(135deg, #bb86fc, #03dac6);
+        }
+        {% elif request.user.theme.theme == 'light' %}
+        body {
+            --primary-color: #339af0;
+            --primary-gradient: linear-gradient(135deg, #339af0, #74c0fc);
+            --secondary-color: #51cf66;
+            --secondary-gradient: linear-gradient(135deg, #51cf66, #8ce99a);
+            --accent-color: #fcc419;
+            --accent-gradient: linear-gradient(135deg, #fcc419, #ffe066);
+            --dark-color: #343a40;
+            --light-color: #f8f9fa;
+            --body-bg: #ffffff;
+            --body-color: #343a40;
+            --header-gradient: linear-gradient(135deg, #339af0, #51cf66);
+        }
+        {% elif request.user.theme.theme == 'nature' %}
+        body {
+            --primary-color: #51cf66;
+            --primary-gradient: linear-gradient(135deg, #51cf66, #69db7c);
+            --secondary-color: #94d82d;
+            --secondary-gradient: linear-gradient(135deg, #94d82d, #a9e34b);
+            --accent-color: #ffd43b;
+            --accent-gradient: linear-gradient(135deg, #ffd43b, #ffe066);
+            --dark-color: #2b8a3e;
+            --light-color: #ebfbee;
+            --body-bg: #f4faf5;
+            --body-color: #2b8a3e;
+            --header-gradient: linear-gradient(135deg, #51cf66, #94d82d);
+        }
+        {% elif request.user.theme.theme == 'romance' %}
+        body {
+            --primary-color: #f06595;
+            --primary-gradient: linear-gradient(135deg, #f06595, #f783ac);
+            --secondary-color: #cc5de8;
+            --secondary-gradient: linear-gradient(135deg, #cc5de8, #da77f2);
+            --accent-color: #ffc9c9;
+            --accent-gradient: linear-gradient(135deg, #ffc9c9, #ffd8d8);
+            --dark-color: #a61e4d;
+            --light-color: #fff0f6;
+            --body-bg: #fff5f7;
+            --body-color: #a61e4d;
+            --header-gradient: linear-gradient(135deg, #f06595, #cc5de8);
+        }
+        {% elif request.user.theme.theme == 'royal' %}
+        body {
+            --primary-color: #7950f2;
+            --primary-gradient: linear-gradient(135deg, #7950f2, #9775fa);
+            --secondary-color: #4c6ef5;
+            --secondary-gradient: linear-gradient(135deg, #4c6ef5, #5c7cfa);
+            --accent-color: #fab005;
+            --accent-gradient: linear-gradient(135deg, #fab005, #fcc419);
+            --dark-color: #364fc7;
+            --light-color: #edf2ff;
+            --body-bg: #f3f0ff;
+            --body-color: #4c3c92;
+            --header-gradient: linear-gradient(135deg, #7950f2, #4c6ef5);
+        }
+        {% elif request.user.theme.theme == 'ocean' %}
+        body {
+            --primary-color: #1c7ed6;
+            --primary-gradient: linear-gradient(135deg, #1c7ed6, #339af0);
+            --secondary-color: #0ca678;
+            --secondary-gradient: linear-gradient(135deg, #0ca678, #20c997);
+            --accent-color: #66d9e8;
+            --accent-gradient: linear-gradient(135deg, #66d9e8, #99e9f2);
+            --dark-color: #0b4f7c;
+            --light-color: #e3fafc;
+            --body-bg: #e7f5ff;
+            --body-color: #1864ab;
+            --header-gradient: linear-gradient(135deg, #1c7ed6, #0ca678);
+        }
+        {% elif request.user.theme.theme == 'sunset' %}
+        body {
+            --primary-color: #f76707;
+            --primary-gradient: linear-gradient(135deg, #f76707, #ff922b);
+            --secondary-color: #c2255c;
+            --secondary-gradient: linear-gradient(135deg, #c2255c, #e64980);
+            --accent-color: #fcc419;
+            --accent-gradient: linear-gradient(135deg, #fcc419, #ffe066);
+            --dark-color: #c92a2a;
+            --light-color: #fff4e6;
+            --body-bg: #fff9db;
+            --body-color: #c92a2a;
+            --header-gradient: linear-gradient(135deg, #f76707, #c2255c);
+        }
+        {% endif %}
+        
+        /* Additional Dark Mode Improvements */
+        {% if request.user.theme.theme == 'dark' %}
+        .card {
+            background-color: #1e1e1e;
+            border-color: #383838;
+        }
+        
+        .card-header {
+            background-color: #272727;
+            border-color: #444;
+        }
+        
+        .list-group-item {
+            background-color: #1e1e1e;
+            border-color: #383838;
+            color: #e0e0e0;
+        }
+        
+        .dropdown-menu {
+            background-color: #1e1e1e;
+            border-color: #383838;
+        }
+        
+        .dropdown-item {
+            color: #e0e0e0;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #272727;
+        }
+        
+        .table {
+            color: #e0e0e0;
+        }
+        
+        .table td, .table th {
+            border-color: #383838;
+        }
+        
+        .text-muted {
+            color: #adb5bd !important;
+        }
+        
+        .form-control, .form-select {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background-color: #333;
+            border-color: var(--primary-color);
+            color: #fff;
+        }
+        
+        .form-control::placeholder {
+            color: #888;
+        }
+        
+        .form-check-input {
+            background-color: #2d2d2d;
+            border-color: #444;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .nav-tabs .nav-link {
+            color: #adb5bd;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background-color: #272727;
+            border-color: #383838;
+            color: #e0e0e0;
+        }
+        
+        .modal-content {
+            background-color: #1e1e1e;
+            border-color: #383838;
+        }
+        
+        .modal-header, .modal-footer {
+            border-color: #383838;
+        }
+        
+        a {
+            color: var(--primary-color);
+        }
+        
+        a:hover {
+            color: var(--secondary-color);
+        }
+        
+        .form-floating > label {
+            color: #adb5bd;
+        }
+        
+        .settings-card-header {
+            background: var(--primary-gradient);
+            color: white;
+        }
+        
+        .settings-section-title {
+            color: var(--primary-color);
+            border-color: #383838;
+        }
+        
+        .theme-option-label {
+            background-color: #272727;
+            border-color: #383838;
+        }
+        
+        .theme-option-input:checked + .theme-option-label {
+            border-color: var(--primary-color);
+            background-color: rgba(var(--primary-color-rgb, 187, 134, 252), 0.1);
+        }
+        
+        .btn-settings {
+            background: var(--primary-gradient);
+            color: white;
+        }
+        
+        .btn-outline-settings {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-outline-settings:hover {
+            background: var(--primary-gradient);
+            color: white;
+        }
+        
+        .form-switch .form-check-input {
+            background-color: #2d2d2d;
+        }
+        
+        .form-switch .form-check-input:checked {
+            background-color: var(--primary-color);
+        }
+        {% endif %}
+        
+        /* Body and General Styles */
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--body-bg);
+            color: var(--body-color);
+            overscroll-behavior: none;
+            padding-bottom: env(safe-area-inset-bottom);
+            font-size: var(--font-size-base);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+        
+        /* Navbar Styles */
+        .navbar {
+            background-color: var(--navbar-bg);
+            box-shadow: 0 2px 10px var(--shadow-color);
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-link {
+            color: var(--dark-color);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary-color);
+            background-color: rgba(var(--bs-primary-rgb), 0.1);
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--sidebar-bg);
+            border-radius: 15px;
+            box-shadow: 0 0 20px var(--shadow-color);
+            padding: 1.5rem;
+            position: sticky;
+            top: 2rem;
+            transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+        }
+        
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.85rem 1.2rem;
+            color: var(--dark-color);
+            text-decoration: none;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            transition: all var(--transition-speed);
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px var(--shadow-color);
+        }
+        
+        .sidebar-icon {
+            margin-left: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Dropdown Styles */
+        .dropdown-item {
+            padding: 0.6rem 1.5rem;
+            transition: all var(--transition-speed);
+            border-radius: 8px;
+            margin: 0.2rem 0.5rem;
+            width: calc(100% - 1rem);
+        }
+        
+        .dropdown-item:hover {
+            background: var(--primary-gradient);
+            color: white;
+        }
+        
+        /* Badge Styles */
+        .badge-notification {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.6rem;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-gradient);
+        }
+        
+        /* Card Styles */
+        .card {
+            background-color: var(--card-bg);
+            border-color: var(--card-border);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px var(--shadow-color);
+            transition: transform var(--transition-speed), box-shadow var(--transition-speed), 
+                      background-color var(--transition-speed), border-color var(--transition-speed);
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px var(--shadow-hover);
+        }
+        
+        .card-header {
+            background-color: rgba(0,0,0,0.02);
+            border-bottom: 1px solid var(--card-border);
+            padding: 1rem 1.25rem;
+            transition: background-color var(--transition-speed), border-bottom var(--transition-speed);
+        }
+        
+        /* Button Styles */
+        .btn {
+            border-radius: 10px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all var(--transition-speed);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: -1;
+            transform: translateY(100%);
+            transition: transform var(--transition-speed);
+        }
+        
+        .btn:hover::before {
+            transform: translateY(0);
+        }
+        
+        .btn-primary {
+            background: var(--primary-gradient);
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(var(--bs-primary-rgb), 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-gradient);
+            border-color: var(--primary-color);
+            opacity: var(--btn-hover-intensity);
+            box-shadow: 0 6px 15px rgba(var(--bs-primary-rgb), 0.4);
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--primary-gradient);
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(var(--bs-primary-rgb), 0.3);
+        }
+        
+        /* Form Control Styles */
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            border-color: var(--input-border);
+            background-color: var(--input-bg);
+            color: var(--body-color);
+            transition: all var(--transition-speed);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+            background-color: var(--input-bg);
+            color: var(--body-color);
+        }
+        
+        .breadcrumb {
+            padding: 0.75rem 0;
+            margin-bottom: 1.5rem;
+            background-color: transparent;
+        }
+        
+        .breadcrumb-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .breadcrumb-item.active {
+            color: var(--dark-color);
+        }
+        
+        .alert {
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+        }
+        
+        .pagination .page-link {
+            color: var(--primary-color);
+            border-color: var(--card-border);
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .footer {
+            background-color: var(--navbar-bg);
+            padding: 1.5rem 0;
+            margin-top: 4rem;
+            border-top: 1px solid var(--card-border);
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 767.98px) {
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+            
+            .card {
+                margin-bottom: 1rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+            
+            .navbar .container {
+                padding: 0.5rem 15px;
+            }
+            
+            .nav-link {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+            
+            .sidebar {
+                margin-top: 1rem;
+                position: static;
+            }
+            
+            .btn {
+                padding: 0.4rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            h1, .h1 { font-size: 1.75rem; }
+            h2, .h2 { font-size: 1.5rem; }
+            h3, .h3 { font-size: 1.3rem; }
+            h4, .h4 { font-size: 1.2rem; }
+        }
+        
+        /* Bottom navigation for mobile */
+        .mobile-nav {
+            display: none;
+        }
+        
+        @media (max-width: 767.98px) {
+            body {
+                padding-bottom: 60px;
+            }
+            
+            .mobile-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background-color: var(--navbar-bg);
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                z-index: 1030;
+                height: 60px;
+            }
+            
+            .mobile-nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: var(--dark-color);
+                text-decoration: none;
+                font-size: 0.7rem;
+                padding: 8px 0;
+            }
+            
+            .mobile-nav-item i {
+                font-size: 1.2rem;
+                margin-bottom: 4px;
+            }
+            
+            .mobile-nav-item.active {
+                color: var(--primary-color);
+            }
+        }
+
+        /* Notification Styles */
+        .notification-dropdown {
+            width: 320px;
+            padding: 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-height: 80vh;
+            overflow: hidden;
+        }
+
+        .notification-scroll {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .dropdown-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .dropdown-footer {
+            padding: 0.75rem;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .notification-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--card-border);
+            transition: all var(--transition-speed);
+        }
+
+        .notification-item:hover {
+            background-color: rgba(var(--bs-primary-rgb), 0.1);
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--light-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-time {
+            font-size: 0.7rem;
+            color: var(--text-muted, #adb5bd);
+        }
+
+        .badge-notification {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.6rem;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-gradient);
+            color: white;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="{% if request.user.theme.theme == 'dark' %}theme-dark{% elif request.user.theme.theme == 'light' %}theme-light{% elif request.user.theme.theme == 'nature' %}theme-nature{% elif request.user.theme.theme == 'romance' %}theme-romance{% elif request.user.theme.theme == 'royal' %}theme-royal{% elif request.user.theme.theme == 'ocean' %}theme-ocean{% elif request.user.theme.theme == 'sunset' %}theme-sunset{% else %}theme-default{% endif %}">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <i class="fas fa-heart"></i>دفترچه پیوند
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+                            <i class="fas fa-home"></i> داشبورد
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'moments_list' %}active{% endif %}" href="{% url 'moments_list' %}">
+                            <i class="fas fa-camera"></i> لحظه‌ها
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'events_list' %}active{% endif %}" href="{% url 'events_list' %}">
+                            <i class="fas fa-calendar-alt"></i> رویدادها
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'wishes_list' %}active{% endif %}" href="{% url 'wishes_list' %}">
+                            <i class="fas fa-star"></i> آرزوها
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item position-relative me-2 dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            {% if unread_notifications_count > 0 %}
+                                <span class="badge badge-notification">{{ unread_notifications_count }}</span>
+                            {% endif %}
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationsDropdown">
+                            <div class="dropdown-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">اعلان‌ها</h6>
+                                <a href="{% url 'mark_notifications_read' %}" class="text-primary small" onclick="event.preventDefault(); document.getElementById('mark-read-form').submit();">
+                                    <i class="fas fa-check-double"></i> خواندن همه
+                                </a>
+                                <form id="mark-read-form" action="{% url 'mark_notifications_read' %}" method="post" class="d-none">
+                                    {% csrf_token %}
+                                </form>
+                            </div>
+                            <div class="notification-scroll">
+                                {% if unread_notifications %}
+                                    {% for notification in unread_notifications %}
+                                        <a href="{{ notification.link|default:'#' }}" class="dropdown-item notification-item">
+                                            <div class="d-flex align-items-center">
+                                                <div class="notification-icon 
+                                                    {% if notification.notification_type == 'event' %}text-warning
+                                                    {% elif notification.notification_type == 'moment' %}text-info
+                                                    {% elif notification.notification_type == 'wish' %}text-success
+                                                    {% elif notification.notification_type == 'comment' %}text-primary
+                                                    {% else %}text-secondary{% endif %}">
+                                                    {% if notification.notification_type == 'event' %}
+                                                        <i class="fas fa-calendar-alt"></i>
+                                                    {% elif notification.notification_type == 'moment' %}
+                                                        <i class="fas fa-camera"></i>
+                                                    {% elif notification.notification_type == 'wish' %}
+                                                        <i class="fas fa-star"></i>
+                                                    {% elif notification.notification_type == 'comment' %}
+                                                        <i class="fas fa-comment"></i>
+                                                    {% elif notification.notification_type == 'system' %}
+                                                        <i class="fas fa-cog"></i>
+                                                    {% elif notification.notification_type == 'daily_message' %}
+                                                        <i class="fas fa-envelope"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="notification-content">
+                                                    <h6 class="mb-1">{{ notification.title }}</h6>
+                                                    <p class="small text-truncate mb-0">{{ notification.message }}</p>
+                                                    <div class="notification-time">
+                                                        <small class="text-muted">{{ notification.created_at|timesince }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center p-3">
+                                        <i class="fas fa-bell-slash text-muted mb-2" style="font-size: 2rem;"></i>
+                                        <p class="mb-0">اعلان جدیدی ندارید</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="dropdown-footer text-center">
+                                <a href="{% url 'notifications_list' %}" class="text-primary">مشاهده همه اعلان‌ها</a>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="d-none d-md-inline ms-2">{{ request.user.first_name|default:request.user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'profile' %}">
+                                <i class="fas fa-user"></i> پروفایل
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'app_settings' %}">
+                                <i class="fas fa-cog"></i> تنظیمات
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}" class="m-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt"></i> خروج
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="container my-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer text-center">
+        <div class="container">
+            <p class="mb-0">&copy; ۱۴۰۲ اسمارت لاو هاب - تمامی حقوق محفوظ است</p>
+        </div>
+    </footer>
+    
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav">
+        <a href="{% url 'dashboard' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="fas fa-home"></i>
+            <span>داشبورد</span>
+        </a>
+        <a href="{% url 'moments_list' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'moments_list' %}active{% endif %}">
+            <i class="fas fa-camera"></i>
+            <span>لحظه‌ها</span>
+        </a>
+        <a href="{% url 'events_list' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'events_list' %}active{% endif %}">
+            <i class="fas fa-calendar-alt"></i>
+            <span>رویدادها</span>
+        </a>
+        <a href="{% url 'notifications_list' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'notifications_list' %}active{% endif %} position-relative">
+            <i class="fas fa-bell"></i>
+            {% if unread_notifications_count > 0 %}
+                <span class="badge bg-danger badge-notification" style="top: 0px; right: 25%;">{{ unread_notifications_count }}</span>
+            {% endif %}
+            <span>اعلان‌ها</span>
+        </a>
+        <a href="{% url 'profile' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+            <i class="fas fa-user"></i>
+            <span>پروفایل</span>
+        </a>
+    </div>
+    
+    <!-- Mobile Menu Offcanvas -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="mobileMenuLabel">منوی کاربری</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="d-flex align-items-center mb-4">
+                {% if user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="rounded-circle" width="50" height="50">
+                {% else %}
+                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white" style="width: 50px; height: 50px;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                {% endif %}
+                <div class="ms-3">
+                    <h6 class="mb-0">{% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}</h6>
+                    <small class="text-muted">{{ user.email }}</small>
+                </div>
+            </div>
+            
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'profile' %}">
+                        <i class="fas fa-user me-3"></i> پروفایل
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'app_settings' %}">
+                        <i class="fas fa-cog me-3"></i> تنظیمات
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'wishes_list' %}">
+                        <i class="fas fa-star me-3"></i> آرزوها
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'date_ideas' %}">
+                        <i class="fas fa-heart me-3"></i> ایده‌های قرار
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'notes_list' %}">
+                        <i class="fas fa-sticky-note me-3"></i> یادداشت‌ها
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'track_mood' %}">
+                        <i class="fas fa-smile me-3"></i> ثبت حال و هوا
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'calendar_view' %}">
+                        <i class="fas fa-calendar me-3"></i> تقویم
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'map_view' %}">
+                        <i class="fas fa-map-marker-alt me-3"></i> نقشه
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'widget_settings' %}">
+                        <i class="fas fa-th-large me-3"></i> تنظیمات ویجت‌ها
+                    </a>
+                </li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li class="nav-item">
+                    <form method="post" action="{% url 'logout' %}" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-link d-flex align-items-center border-0 bg-transparent">
+                            <i class="fas fa-sign-out-alt me-2"></i>
+                            <span>خروج</span>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- jQuery (needed before Bootstrap JS) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Global Scripts -->
+    <script>
+        // Enable dismissing of alerts
+        document.addEventListener('DOMContentLoaded', function() {
+            var alertList = [].slice.call(document.querySelectorAll('.alert'));
+            alertList.map(function (alert) {
+                return new bootstrap.Alert(alert);
+            });
+            
+            // Fix for iOS safe areas
+            if (window.navigator.standalone) {
+                document.body.classList.add('ios-standalone');
+            }
+        });
+    </script>
+    
+    <!-- Notification Refresh Script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fetch new notifications every 30 seconds
+        function refreshNotifications() {
+            fetch('/notifications/unread/')
+                .then(response => response.json())
+                .then(data => {
+                    // Update notification count
+                    const navBadge = document.querySelector('.nav-item .badge-notification');
+                    const mobileBadge = document.querySelector('.mobile-nav-item .badge-notification');
+                    
+                    if (data.unread_count > 0) {
+                        // Update or create the navbar badge
+                        if (navBadge) {
+                            navBadge.textContent = data.unread_count;
+                        } else {
+                            const notificationIcon = document.querySelector('#notificationsDropdown');
+                            const newBadge = document.createElement('span');
+                            newBadge.className = 'badge badge-notification';
+                            newBadge.textContent = data.unread_count;
+                            notificationIcon.appendChild(newBadge);
+                        }
+                        
+                        // Update or create the mobile nav badge
+                        if (mobileBadge) {
+                            mobileBadge.textContent = data.unread_count;
+                        } else {
+                            const mobileNotificationIcon = document.querySelector('.mobile-nav-item[href*="notifications"]');
+                            const newMobileBadge = document.createElement('span');
+                            newMobileBadge.className = 'badge bg-danger badge-notification';
+                            newMobileBadge.style = 'top: 0px; right: 25%;';
+                            newMobileBadge.textContent = data.unread_count;
+                            mobileNotificationIcon.appendChild(newMobileBadge);
+                        }
+                    } else {
+                        // Remove badges if no notifications
+                        if (navBadge) navBadge.remove();
+                        if (mobileBadge) mobileBadge.remove();
+                    }
+                    
+                    // Update notification dropdown content if it exists
+                    const notificationScroll = document.querySelector('.notification-scroll');
+                    if (notificationScroll) {
+                        if (data.notifications.length > 0) {
+                            let notificationHTML = '';
+                            data.notifications.forEach(notification => {
+                                let iconClass = '';
+                                
+                                switch(notification.type) {
+                                    case 'event': iconClass = 'fa-calendar-alt text-warning'; break;
+                                    case 'moment': iconClass = 'fa-camera text-info'; break;
+                                    case 'wish': iconClass = 'fa-star text-success'; break;
+                                    case 'comment': iconClass = 'fa-comment text-primary'; break;
+                                    case 'system': iconClass = 'fa-cog text-secondary'; break;
+                                    case 'daily_message': iconClass = 'fa-envelope text-purple'; break;
+                                    default: iconClass = 'fa-bell text-secondary';
+                                }
+                                
+                                notificationHTML += `
+                                <a href="${notification.link}" class="dropdown-item notification-item">
+                                    <div class="d-flex align-items-center">
+                                        <div class="notification-icon">
+                                            <i class="fas ${iconClass}"></i>
+                                        </div>
+                                        <div class="notification-content">
+                                            <h6 class="mb-1">${notification.title}</h6>
+                                            <p class="small text-truncate mb-0">${notification.message}</p>
+                                            <div class="notification-time">
+                                                <small class="text-muted">${notification.created_at}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>`;
+                            });
+                            
+                            notificationScroll.innerHTML = notificationHTML;
+                        } else {
+                            notificationScroll.innerHTML = `
+                            <div class="text-center p-3">
+                                <i class="fas fa-bell-slash text-muted mb-2" style="font-size: 2rem;"></i>
+                                <p class="mb-0">اعلان جدیدی ندارید</p>
+                            </div>`;
+                        }
+                    }
+                })
+                .catch(error => console.error('Error refreshing notifications:', error));
+        }
+        
+        // Initial load and then refresh every 30 seconds
+        refreshNotifications();
+        setInterval(refreshNotifications, 30000);
+    });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

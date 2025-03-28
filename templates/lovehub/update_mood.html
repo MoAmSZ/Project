@@ -1,0 +1,248 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}ثبت حال و هوا | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .mood-card {
+        background-color: var(--card-bg);
+        border-radius: 15px;
+        border: 1px solid var(--card-border);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        padding: 1.5rem;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .mood-form {
+        margin-top: 1.5rem;
+    }
+    
+    .mood-textarea {
+        border-radius: 10px;
+        padding: 1rem;
+        min-height: 100px;
+        resize: none;
+    }
+    
+    .partner-mood {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        padding: 1.25rem;
+        border-radius: 15px;
+        margin-top: 1.5rem;
+        position: relative;
+    }
+    
+    .partner-mood-time {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-align: left;
+        margin-top: 0.5rem;
+    }
+    
+    .partner-mood-user {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .partner-mood-user .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        margin-left: 0.75rem;
+        background-color: rgba(var(--bs-primary-rgb), 0.2);
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+    
+    .partner-mood-user .name {
+        font-weight: 500;
+    }
+    
+    .mood-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .mood-option {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+    }
+    
+    .mood-option input[type="radio"] {
+        display: none;
+    }
+    
+    .mood-emoji {
+        font-size: 2.5rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s, background-color 0.2s;
+        border: 2px solid transparent;
+    }
+    
+    .mood-option:hover .mood-emoji {
+        transform: scale(1.1);
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+    }
+    
+    .mood-option input[type="radio"]:checked + .mood-emoji {
+        border-color: var(--primary-color);
+        background-color: rgba(var(--bs-primary-rgb), 0.15);
+    }
+    
+    .mood-label {
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        color: #495057;
+    }
+    
+    @media (max-width: 767.98px) {
+        .mood-card {
+            padding: 1.25rem;
+        }
+        
+        .mood-emoji {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+        }
+        
+        .mood-options {
+            gap: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                <li class="breadcrumb-item active">ثبت حال و هوا</li>
+            </ol>
+        </nav>
+        
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0"><i class="fas fa-smile"></i> ثبت حال و هوای روزانه</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="mood-card">
+            <p class="lead">حال و هوای امروز خود را ثبت کنید. این اطلاعات در نمودار نبض رابطه نمایش داده می‌شود.</p>
+            
+            {% if partner_mood %}
+                <div class="partner-mood">
+                    <div class="partner-mood-user">
+                        <div class="avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="name">{{ partner_mood.user.get_full_name|default:partner_mood.user.username }}</div>
+                    </div>
+                    <div class="partner-mood-text">
+                        <div class="d-flex align-items-center">
+                            <span style="font-size: 2rem;">{{ partner_mood.mood }}</span>
+                            <span class="ms-2">{{ partner_mood.get_mood_display }}</span>
+                        </div>
+                        {% if partner_mood.note %}
+                            <div class="mt-2">{{ partner_mood.note }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="partner-mood-time">
+                        {{ partner_mood.date|date:"Y/m/d" }}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <form method="post" class="mood-form">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">حال و هوای امروز شما چطور است؟</label>
+                    <div class="mood-options">
+                        <label class="mood-option">
+                            <input type="radio" name="mood" value="😊" required {% if user_mood.mood == '😊' %}checked{% endif %}>
+                            <div class="mood-emoji">😊</div>
+                            <span class="mood-label">خوشحال</span>
+                        </label>
+                        
+                        <label class="mood-option">
+                            <input type="radio" name="mood" value="😍" {% if user_mood.mood == '😍' %}checked{% endif %}>
+                            <div class="mood-emoji">😍</div>
+                            <span class="mood-label">عاشقانه</span>
+                        </label>
+                        
+                        <label class="mood-option">
+                            <input type="radio" name="mood" value="🤔" {% if user_mood.mood == '🤔' %}checked{% endif %}>
+                            <div class="mood-emoji">🤔</div>
+                            <span class="mood-label">متفکر</span>
+                        </label>
+                        
+                        <label class="mood-option">
+                            <input type="radio" name="mood" value="🙂" {% if user_mood.mood == '🙂' %}checked{% endif %}>
+                            <div class="mood-emoji">🙂</div>
+                            <span class="mood-label">معمولی</span>
+                        </label>
+                        
+                        <label class="mood-option">
+                            <input type="radio" name="mood" value="❤️" {% if user_mood.mood == '❤️' %}checked{% endif %}>
+                            <div class="mood-emoji">❤️</div>
+                            <span class="mood-label">عاشق</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="note" class="form-label">یادداشت (اختیاری):</label>
+                    <textarea id="note" name="note" class="form-control mood-textarea" placeholder="توضیح مختصری درباره حال و هوای امروز خود بنویسید...">{{ user_mood.note }}</textarea>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> ثبت حال و هوا
+                    </button>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i> انصراف
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default selected mood if none is selected
+        const moodOptions = document.querySelectorAll('input[name="mood"]');
+        let isAnySelected = false;
+        
+        moodOptions.forEach(option => {
+            if (option.checked) {
+                isAnySelected = true;
+            }
+        });
+        
+        if (!isAnySelected && moodOptions.length > 0) {
+            moodOptions[0].checked = true;
+        }
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,350 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}اعلان‌ها | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notification-item {
+        transition: all 0.3s;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 15px;
+        border-right: 3px solid transparent;
+    }
+    
+    .notification-item:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    
+    .notification-item.unread {
+        border-right-color: var(--primary-color);
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+    }
+    
+    .notification-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        color: #6c757d;
+        margin-left: 15px;
+    }
+    
+    .notification-item.unread .notification-icon {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        color: var(--primary-color);
+    }
+    
+    .notification-item.type-event .notification-icon {
+        background-color: rgba(25, 135, 84, 0.1);
+        color: #198754;
+    }
+    
+    .notification-item.type-moment .notification-icon {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+    }
+    
+    .notification-item.type-wish .notification-icon {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+    
+    .notification-item.type-comment .notification-icon {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
+    
+    .notification-item.type-system .notification-icon {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .notification-item.type-daily_message .notification-icon {
+        background-color: rgba(102, 16, 242, 0.1);
+        color: #6610f2;
+    }
+    
+    .notification-time {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .notification-title {
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+    
+    .notification-body {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .notification-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .notification-action {
+        font-size: 0.8rem;
+        padding: 2px 8px;
+    }
+    
+    .bg-purple {
+        background-color: #6610f2 !important;
+    }
+    
+    .progress .bg-purple {
+        background-color: #6610f2 !important;
+    }
+    
+    .notification-tabs .nav-link {
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+    }
+    
+    .notification-summary {
+        background: var(--primary-gradient);
+        border-radius: 10px;
+        padding: 20px;
+        color: white;
+        margin-bottom: 20px;
+    }
+    
+    .empty-notification {
+        text-align: center;
+        padding: 50px 0;
+    }
+    
+    .empty-notification i {
+        font-size: 4rem;
+        color: var(--light-color);
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                <li class="breadcrumb-item active">اعلان‌ها</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0"><i class="fas fa-bell"></i> اعلان‌ها</h4>
+            <div>
+                <a href="{% url 'notifications_list' %}?mark_read=all" class="btn btn-sm btn-outline-success">
+                    <i class="fas fa-check-double"></i> علامت‌گذاری همه به عنوان خوانده‌شده
+                </a>
+                <a href="{% url 'notifications_list' %}?clear_read=all" class="btn btn-sm btn-outline-danger ms-2">
+                    <i class="fas fa-trash"></i> حذف اعلان‌های خوانده شده
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-9">
+        <!-- Notification Summary Card -->
+        <div class="notification-summary card mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-2">وضعیت اعلان‌ها</h5>
+                    <p class="mb-0">
+                        <i class="fas fa-envelope"></i> کل اعلان‌ها: {{ notifications|length }}
+                        <span class="ms-3">
+                            <i class="fas fa-envelope-open"></i> خوانده نشده: {{ unread_count }}
+                        </span>
+                    </p>
+                </div>
+                <div>
+                    <i class="fas fa-bell fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notification Tabs -->
+        <ul class="nav nav-tabs notification-tabs mb-3" id="notificationTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="unread-tab" data-bs-toggle="tab" data-bs-target="#unread" type="button" role="tab" aria-controls="unread" aria-selected="true">
+                    <i class="fas fa-envelope"></i> خوانده نشده <span class="badge bg-primary ms-1">{{ unread_count }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="read-tab" data-bs-toggle="tab" data-bs-target="#read" type="button" role="tab" aria-controls="read" aria-selected="false">
+                    <i class="fas fa-envelope-open"></i> خوانده شده <span class="badge bg-secondary ms-1">{{ read_notifications|length }}</span>
+                </button>
+            </li>
+        </ul>
+        
+        <!-- Tab Content -->
+        <div class="tab-content" id="notificationTabsContent">
+            <!-- Unread Notifications -->
+            <div class="tab-pane fade show active" id="unread" role="tabpanel" aria-labelledby="unread-tab">
+                {% if unread_notifications %}
+                    <form method="POST" action="{% url 'mark_notifications_read' %}">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-end mb-3">
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="fas fa-check-double"></i> علامت‌گذاری انتخاب شده
+                            </button>
+                        </div>
+                        
+                        {% for notification in unread_notifications %}
+                            <div class="card notification-item type-{{ notification.notification_type }} unread mb-3">
+                                <div class="card-body d-flex">
+                                    <div class="d-flex align-items-center">
+                                        <div class="form-check mt-1">
+                                            <input class="form-check-input" type="checkbox" name="notification_ids" value="{{ notification.id }}" id="check{{ notification.id }}">
+                                        </div>
+                                    </div>
+                                    <div class="notification-icon">
+                                        {% if notification.notification_type == 'event' %}
+                                            <i class="fas fa-calendar-alt"></i>
+                                        {% elif notification.notification_type == 'moment' %}
+                                            <i class="fas fa-camera"></i>
+                                        {% elif notification.notification_type == 'wish' %}
+                                            <i class="fas fa-star"></i>
+                                        {% elif notification.notification_type == 'comment' %}
+                                            <i class="fas fa-comment"></i>
+                                        {% elif notification.notification_type == 'daily_message' %}
+                                            <i class="fas fa-comment-dots"></i>
+                                        {% else %}
+                                            <i class="fas fa-info-circle"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="notification-title">{{ notification.title }}</div>
+                                            <div class="notification-time">{{ notification.created_at|date:"Y/m/d" }} - {{ notification.created_at|time:"H:i" }}</div>
+                                        </div>
+                                        <div class="notification-body">{{ notification.message }}</div>
+                                        
+                                        {% if notification.link %}
+                                            <div class="notification-actions">
+                                                <a href="{{ notification.link }}" class="btn btn-sm btn-primary notification-action">
+                                                    <i class="fas fa-eye"></i> مشاهده
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </form>
+                {% else %}
+                    <div class="empty-notification">
+                        <i class="fas fa-bell-slash"></i>
+                        <h5>اعلان خوانده نشده‌ای ندارید</h5>
+                        <p class="text-muted">تمام اعلان‌های شما خوانده شده‌اند</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Read Notifications -->
+            <div class="tab-pane fade" id="read" role="tabpanel" aria-labelledby="read-tab">
+                {% if read_notifications %}
+                    {% for notification in read_notifications %}
+                        <div class="card notification-item type-{{ notification.notification_type }} mb-3">
+                            <div class="card-body d-flex">
+                                <div class="notification-icon">
+                                    {% if notification.notification_type == 'event' %}
+                                        <i class="fas fa-calendar-alt"></i>
+                                    {% elif notification.notification_type == 'moment' %}
+                                        <i class="fas fa-camera"></i>
+                                    {% elif notification.notification_type == 'wish' %}
+                                        <i class="fas fa-star"></i>
+                                    {% elif notification.notification_type == 'comment' %}
+                                        <i class="fas fa-comment"></i>
+                                    {% elif notification.notification_type == 'daily_message' %}
+                                        <i class="fas fa-comment-dots"></i>
+                                    {% else %}
+                                        <i class="fas fa-info-circle"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="notification-title">{{ notification.title }}</div>
+                                        <div class="notification-time">{{ notification.created_at|date:"Y/m/d" }} - {{ notification.created_at|time:"H:i" }}</div>
+                                    </div>
+                                    <div class="notification-body">{{ notification.message }}</div>
+                                    
+                                    {% if notification.link %}
+                                        <div class="notification-actions">
+                                            <a href="{{ notification.link }}" class="btn btn-sm btn-outline-primary notification-action">
+                                                <i class="fas fa-eye"></i> مشاهده
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-notification">
+                        <i class="fas fa-envelope-open"></i>
+                        <h5>اعلان خوانده شده‌ای ندارید</h5>
+                        <p class="text-muted">اعلان‌های خوانده شده در اینجا نمایش داده می‌شوند</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">راهنمای اعلان‌ها</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex align-items-center">
+                        <div class="notification-icon type-event me-2 ms-2" style="width: 30px; height: 30px;">
+                            <i class="fas fa-calendar-alt small"></i>
+                        </div>
+                        <span>رویدادها</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <div class="notification-icon type-moment me-2 ms-2" style="width: 30px; height: 30px;">
+                            <i class="fas fa-camera small"></i>
+                        </div>
+                        <span>لحظه‌ها</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <div class="notification-icon type-wish me-2 ms-2" style="width: 30px; height: 30px;">
+                            <i class="fas fa-star small"></i>
+                        </div>
+                        <span>آرزوها</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <div class="notification-icon type-comment me-2 ms-2" style="width: 30px; height: 30px;">
+                            <i class="fas fa-comment small"></i>
+                        </div>
+                        <span>نظرات</span>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <div class="notification-icon type-system me-2 ms-2" style="width: 30px; height: 30px;">
+                            <i class="fas fa-info-circle small"></i>
+                        </div>
+                        <span>سیستمی</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'app_settings' %}" class="btn btn-sm btn-outline-primary w-100">
+                    <i class="fas fa-cog"></i> تنظیمات اعلان‌ها
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

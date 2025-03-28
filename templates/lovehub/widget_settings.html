@@ -1,0 +1,208 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}تنظیمات ویجت‌ها | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .widget-card {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        border: none;
+        margin-bottom: 1.5rem;
+    }
+    
+    .widget-card .card-header {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        border-bottom: none;
+        padding: 1rem 1.5rem;
+    }
+    
+    .widget-card .card-header h5 {
+        margin-bottom: 0;
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+    
+    .widget-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .widget-item {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: all 0.3s;
+    }
+    
+    .widget-item:hover {
+        background-color: #e9ecef;
+    }
+    
+    .widget-icon {
+        width: 50px;
+        height: 50px;
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+        font-size: 1.25rem;
+        margin-left: 1rem;
+    }
+    
+    .widget-details {
+        flex-grow: 1;
+    }
+    
+    .widget-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .widget-description {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+    
+    .widget-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .position-control {
+        width: 60px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'app_settings' %}">تنظیمات</a></li>
+                <li class="breadcrumb-item active" aria-current="page">تنظیمات ویجت‌ها</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="widget-card">
+            <div class="card-header">
+                <h5><i class="fas fa-th-large"></i> تنظیمات ویجت‌های داشبورد</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">ویجت‌های نمایش داده شده در داشبورد را انتخاب کنید و ترتیب آن‌ها را مشخص کنید.</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% for widget in widgets %}
+                    <div class="widget-item">
+                        <div class="d-flex">
+                            <div class="widget-icon">
+                                {% if widget.widget_type == 'counter' %}
+                                    <i class="fas fa-calendar-alt"></i>
+                                {% elif widget.widget_type == 'upcoming_events' %}
+                                    <i class="fas fa-bell"></i>
+                                {% elif widget.widget_type == 'this_day' %}
+                                    <i class="fas fa-history"></i>
+                                {% elif widget.widget_type == 'latest_moment' %}
+                                    <i class="fas fa-camera"></i>
+                                {% elif widget.widget_type == 'love_quote' %}
+                                    <i class="fas fa-quote-right"></i>
+                                {% elif widget.widget_type == 'daily_challenge' %}
+                                    <i class="fas fa-trophy"></i>
+                                {% elif widget.widget_type == 'daily_mood' %}
+                                    <i class="fas fa-smile"></i>
+                                {% elif widget.widget_type == 'daily_message' %}
+                                    <i class="fas fa-envelope"></i>
+                                {% endif %}
+                            </div>
+                            <div class="widget-details">
+                                <div class="widget-title">{{ widget.get_widget_type_display }}</div>
+                                <div class="widget-description">
+                                    {% if widget.widget_type == 'counter' %}
+                                        شمارش روزهای رابطه شما و نمایش تاریخ خاص
+                                    {% elif widget.widget_type == 'upcoming_events' %}
+                                        نمایش رویدادهای نزدیک و مناسبت‌های پیش رو
+                                    {% elif widget.widget_type == 'this_day' %}
+                                        نمایش رویدادها و لحظات ثبت شده در سال‌های گذشته در همین روز
+                                    {% elif widget.widget_type == 'latest_moment' %}
+                                        نمایش آخرین لحظه‌ای که ثبت کرده‌اید
+                                    {% elif widget.widget_type == 'love_quote' %}
+                                        نمایش یک نقل قول عاشقانه به صورت تصادفی
+                                    {% elif widget.widget_type == 'daily_challenge' %}
+                                        پیشنهاد یک چالش روزانه برای شما و همسرتان
+                                    {% elif widget.widget_type == 'daily_mood' %}
+                                        نمایش وضعیت حال و هوای شما و همسرتان
+                                    {% elif widget.widget_type == 'daily_message' %}
+                                        ارسال و دریافت پیام روزانه با همسرتان
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="widget-controls">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="enabled_{{ widget.id }}" name="enabled_{{ widget.id }}" {% if widget.is_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="enabled_{{ widget.id }}">فعال</label>
+                            </div>
+                            <div>
+                                <input type="number" class="form-control position-control" id="position_{{ widget.id }}" name="position_{{ widget.id }}" value="{{ widget.position }}" min="1">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> انصراف
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> ذخیره تنظیمات
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Enable/disable position input based on checkbox state
+    document.querySelectorAll('.form-check-input').forEach(function(checkbox) {
+        // Initial state
+        updatePositionField(checkbox);
+        
+        // On change
+        checkbox.addEventListener('change', function() {
+            updatePositionField(this);
+        });
+    });
+    
+    function updatePositionField(checkbox) {
+        const id = checkbox.id.replace('enabled_', '');
+        const positionInput = document.getElementById('position_' + id);
+        
+        if (checkbox.checked) {
+            positionInput.disabled = false;
+        } else {
+            positionInput.disabled = true;
+        }
+    }
+</script>
+{% endblock %} 

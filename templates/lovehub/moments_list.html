@@ -1,0 +1,695 @@
+{% extends "lovehub/base.html" %}
+{% load custom_filters %}
+
+{% block title %}لحظه‌ها | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Animations */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Page header styling */
+    .moments-header {
+        background: linear-gradient(135deg, #51c4d3 0%, #126e82 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .page-header .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 15px;
+    }
+    
+    .page-header .breadcrumb-item,
+    .page-header .breadcrumb-item a {
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .page-header .breadcrumb-item.active {
+        color: white;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        max-width: 80%;
+    }
+    
+    .btn-floating {
+        border-radius: 50px;
+        padding: 10px 20px;
+        font-weight: 600;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+    
+    .btn-floating:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* Enhanced moment cards */
+    .moment-card {
+        transition: all 0.3s ease;
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        background-color: var(--card-bg);
+        border: 1px solid var(--card-border);
+        animation: fadeInUp 0.5s ease forwards;
+        opacity: 0;
+        position: relative;
+    }
+    
+    .moment-card:nth-child(1) { animation-delay: 0.1s; }
+    .moment-card:nth-child(2) { animation-delay: 0.2s; }
+    .moment-card:nth-child(3) { animation-delay: 0.3s; }
+    .moment-card:nth-child(4) { animation-delay: 0.4s; }
+    
+    .moment-card:hover {
+        transform: translateY(-7px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+    
+    .moment-img-container {
+        position: relative;
+        overflow: hidden;
+        max-height: 250px;
+    }
+    
+    .moment-img {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        transition: transform 0.6s ease;
+    }
+    
+    .moment-card:hover .moment-img {
+        transform: scale(1.08);
+    }
+    
+    .moment-tags {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        z-index: 10;
+    }
+    
+    .moment-tag {
+        background: rgba(var(--bs-primary-rgb), 0.8);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 50px;
+        font-size: 0.7rem;
+        backdrop-filter: blur(5px);
+        transition: all 0.3s;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .moment-tag:hover {
+        background: rgba(var(--bs-primary-rgb), 1);
+        transform: translateY(-2px);
+    }
+    
+    .moment-date-badge {
+        position: absolute;
+        left: 15px;
+        top: 15px;
+        background-color: white;
+        color: var(--primary-color);
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        z-index: 10;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    
+    .moment-location {
+        position: absolute;
+        bottom: 15px;
+        left: 15px;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        backdrop-filter: blur(5px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        z-index: 10;
+        transition: all 0.3s;
+    }
+    
+    .moment-card:hover .moment-location {
+        transform: translateY(-5px);
+    }
+    
+    .moment-content {
+        padding: 1.5rem;
+    }
+    
+    .moment-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: var(--dark-color);
+        position: relative;
+        padding-bottom: 10px;
+    }
+    
+    .moment-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        border-radius: 10px;
+    }
+    
+    .moment-description {
+        color: var(--body-color);
+        margin-bottom: 15px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.6;
+    }
+    
+    .moment-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid var(--card-border);
+        padding-top: 15px;
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+    
+    .moment-creator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .moment-actions {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .moment-actions a {
+        color: #6c757d;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .moment-actions a:hover {
+        color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+    
+    .moment-like-btn:hover i {
+        animation: pulse 0.5s ease-in-out;
+    }
+    
+    .moment-like.active {
+        color: var(--primary-color);
+    }
+    
+    /* Filter panel */
+    .filter-form {
+        background-color: var(--card-bg);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--card-border);
+        transition: all 0.3s;
+    }
+    
+    .filter-form:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    
+    .filter-form .form-control, 
+    .filter-form .form-select {
+        border-radius: 8px;
+        padding: 10px 12px;
+        border: 1px solid var(--card-border);
+        background-color: var(--body-bg);
+    }
+    
+    .filter-form .form-control:focus,
+    .filter-form .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+    }
+    
+    .sidebar-sticky {
+        position: sticky;
+        top: 2rem;
+    }
+    
+    /* Empty state */
+    .moment-empty {
+        text-align: center;
+        padding: 4rem 2rem;
+        background-color: var(--card-bg);
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--card-border);
+    }
+    
+    .moment-empty-icon {
+        font-size: 5rem;
+        color: var(--primary-color);
+        opacity: 0.3;
+        margin-bottom: 1.5rem;
+    }
+    
+    .moment-empty .btn {
+        margin-top: 1.5rem;
+        padding: 10px 20px;
+        font-weight: 600;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .moment-card {
+            height: auto;
+        }
+        
+        .moment-img {
+            height: 200px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header moments-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-white opacity-75">خانه</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page">لحظه‌ها</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-camera me-2"></i> لحظه‌های به‌یادماندنی</h1>
+            <p>ثبت و مرور خاطرات و لحظه‌های خاص زندگی مشترک</p>
+        </div>
+        <a href="{% url 'add_moment' %}" class="btn btn-light btn-floating">
+            <i class="fas fa-plus me-2"></i> افزودن لحظه
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sidebar -->
+    <div class="col-lg-3 col-md-4 mb-4">
+        <div class="sidebar-sticky">
+            <div class="card mb-4">
+                <div class="card-header bg-gradient">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i> فیلترها</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="filter-form" id="filter-form">
+                        <div class="mb-3">
+                            <label class="form-label fw-medium"><i class="fas fa-search me-2"></i>کلمه کلیدی</label>
+                            <input type="text" name="q" class="form-control" value="{{ request.GET.q }}" placeholder="جستجو در عنوان یا توضیحات...">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-medium"><i class="fas fa-map-marker-alt me-2"></i>مکان</label>
+                            <input type="text" name="location" class="form-control" value="{{ request.GET.location }}" placeholder="جستجو بر اساس مکان...">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-medium"><i class="fas fa-tags me-2"></i>تگ‌های حسی</label>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="mood_tags" value="هیجان‌انگیز" id="tag-exciting" {% if "هیجان‌انگیز" in filter_mood_tags %}checked{% endif %}>
+                                    <label class="form-check-label" for="tag-exciting">هیجان‌انگیز</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="mood_tags" value="آرامش‌بخش" id="tag-peaceful" {% if "آرامش‌بخش" in filter_mood_tags %}checked{% endif %}>
+                                    <label class="form-check-label" for="tag-peaceful">آرامش‌بخش</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="mood_tags" value="خنده‌دار" id="tag-funny" {% if "خنده‌دار" in filter_mood_tags %}checked{% endif %}>
+                                    <label class="form-check-label" for="tag-funny">خنده‌دار</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="mood_tags" value="عاشقانه" id="tag-romantic" {% if "عاشقانه" in filter_mood_tags %}checked{% endif %}>
+                                    <label class="form-check-label" for="tag-romantic">عاشقانه</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="mood_tags" value="خاطره‌انگیز" id="tag-memorable" {% if "خاطره‌انگیز" in filter_mood_tags %}checked{% endif %}>
+                                    <label class="form-check-label" for="tag-memorable">خاطره‌انگیز</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-medium"><i class="fas fa-calendar-alt me-2"></i>بازه زمانی</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="date" name="date_from" class="form-control" value="{{ request.GET.date_from }}" placeholder="از تاریخ">
+                                </div>
+                                <div class="col-6">
+                                    <input type="date" name="date_to" class="form-control" value="{{ request.GET.date_to }}" placeholder="تا تاریخ">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-medium"><i class="fas fa-sort me-2"></i>مرتب‌سازی</label>
+                            <select name="sort" class="form-select">
+                                <option value="newest" {% if request.GET.sort == 'newest' or not request.GET.sort %}selected{% endif %}>جدیدترین</option>
+                                <option value="oldest" {% if request.GET.sort == 'oldest' %}selected{% endif %}>قدیمی‌ترین</option>
+                                <option value="most_liked" {% if request.GET.sort == 'most_liked' %}selected{% endif %}>محبوب‌ترین</option>
+                                <option value="most_commented" {% if request.GET.sort == 'most_commented' %}selected{% endif %}>پربحث‌ترین</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter me-2"></i> اعمال فیلترها
+                            </button>
+                            <a href="{% url 'moments_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i> حذف فیلترها
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-gradient">
+                    <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i> نقشه لحظه‌ها</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">مشاهده تمام لحظه‌های ثبت شده روی نقشه</p>
+                    <div class="d-grid">
+                        <a href="{% url 'map_view' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-map me-2"></i> مشاهده نقشه
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Moments List -->
+    <div class="col-lg-8 col-xl-9">
+        {% if moments %}
+            <div class="row">
+                {% for moment in moments %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card moment-card">
+                            {% if moment.image %}
+                                <div class="moment-img-container">
+                                    <img src="{{ moment.image.url }}" alt="{{ moment.title }}" class="moment-img">
+                                    
+                                    <!-- Date badge -->
+                                    <div class="moment-date-badge">
+                                        <i class="fas fa-calendar-alt me-1"></i> {{ moment.date|date:"Y/m/d" }}
+                                    </div>
+                                    
+                                    {% if moment.mood_tags %}
+                                        <div class="moment-tags">
+                                            {% for tag in moment.mood_tags|split:"," %}
+                                                <span class="moment-tag">{{ tag }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if moment.location_name %}
+                                        <div class="moment-location">
+                                            <i class="fas fa-map-marker-alt"></i> {{ moment.location_name }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="moment-content">
+                                <h5 class="moment-title">{{ moment.title }}</h5>
+                                <p class="moment-description">{{ moment.description|truncatechars:150 }}</p>
+                                
+                                <div class="moment-meta">
+                                    <div class="moment-creator">
+                                        <i class="fas fa-user-circle"></i>
+                                        {{ moment.created_by.first_name|default:moment.created_by.username }}
+                                    </div>
+                                    <div class="moment-actions">
+                                        <a href="{% url 'moment_detail' moment.id %}" title="مشاهده جزئیات">
+                                            <i class="fas fa-eye"></i> مشاهده
+                                        </a>
+                                        {% if moment.created_by == request.user %}
+                                        <a href="{% url 'edit_moment' moment.id %}" title="ویرایش">
+                                            <i class="fas fa-edit"></i> ویرایش
+                                        </a>
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#deleteMomentModal-{{ moment.id }}" title="حذف">
+                                            <i class="fas fa-trash-alt"></i> حذف
+                                        </a>
+                                        {% endif %}
+                                        <a href="#" class="moment-like-btn" title="لایک" data-moment-id="{{ moment.id }}" data-is-liked="{% if request.user in moment.likes.all %}true{% else %}false{% endif %}">
+                                            <i class="fas fa-heart {% if request.user in moment.likes.all %}active{% endif %}"></i>
+                                            <span class="like-count">{{ moment.likes.count }}</span>
+                                        </a>
+                                        <a href="{% url 'moment_detail' moment.id %}#comments" title="نظرات">
+                                            <i class="fas fa-comment"></i>
+                                            <span>{{ moment.comments.count }}</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Delete Modal for each moment -->
+                    {% if moment.created_by == request.user %}
+                    <div class="modal fade" id="deleteMomentModal-{{ moment.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">تایید حذف</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>آیا از حذف لحظه "{{ moment.title }}" اطمینان دارید؟</p>
+                                    <p class="text-danger">این عمل قابل بازگشت نیست!</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                                    <form method="post" action="{% url 'delete_moment' moment.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-trash-alt"></i> حذف
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            
+            <!-- Enhanced Pagination -->
+            {% if moments.has_other_pages %}
+                <nav aria-label="پیمایش صفحات" class="mt-4">
+                    <ul class="pagination pagination-lg justify-content-center">
+                        {% if moments.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ moments.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="fas fa-chevron-right me-1"></i> قبلی
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#"><i class="fas fa-chevron-right me-1"></i> قبلی</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in moments.paginator.page_range %}
+                            {% if moments.number == num %}
+                                <li class="page-item active">
+                                    <a class="page-link" href="#">{{ num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if moments.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ moments.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    بعدی <i class="fas fa-chevron-left ms-1"></i>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">بعدی <i class="fas fa-chevron-left ms-1"></i></a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+            
+        {% else %}
+            <div class="moment-empty">
+                <div class="moment-empty-icon">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <h4>هنوز لحظه‌ای ثبت نشده است!</h4>
+                <p class="text-muted">
+                    اولین لحظه خود را ثبت کنید و آن را با همسرتان به اشتراک بگذارید.
+                </p>
+                <a href="{% url 'add_moment' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i> ثبت لحظه جدید
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Handle like button click with improved animation
+    $('.moment-like-btn').on('click', function(e) {
+        e.preventDefault();
+        const momentId = $(this).data('moment-id');
+        const $likeButton = $(this);
+        const $likeIcon = $likeButton.find('i.fa-heart');
+        const $likeCount = $likeButton.find('.like-count');
+        
+        // Add click animation
+        $likeIcon.addClass('animate__animated animate__heartBeat');
+        
+        $.ajax({
+            url: `/moments/${momentId}/like/`,
+            type: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            success: function(response) {
+                if (response.liked) {
+                    $likeIcon.addClass('active');
+                } else {
+                    $likeIcon.removeClass('active');
+                }
+                $likeCount.text(response.count);
+                
+                // Remove animation class after animation completes
+                setTimeout(function() {
+                    $likeIcon.removeClass('animate__animated animate__heartBeat');
+                }, 1000);
+                
+                // Show toast message
+                showToast(response.message, 'success');
+            },
+            error: function(xhr) {
+                let errorMessage = 'خطایی رخ داد. لطفا مجددا تلاش کنید.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
+                }
+                showToast(errorMessage, 'error');
+                
+                // Remove animation class if error occurs
+                $likeIcon.removeClass('animate__animated animate__heartBeat');
+            }
+        });
+    });
+    
+    // Function to get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Enhanced toast notifications
+    function showToast(message, type) {
+        const toastHtml = `
+            <div class="toast align-items-center text-white bg-${type === 'success' ? 'primary' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        const toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        toastContainer.style.zIndex = '1050';
+        toastContainer.innerHTML = toastHtml;
+        document.body.appendChild(toastContainer);
+        
+        const toastElement = toastContainer.querySelector('.toast');
+        const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+        toast.show();
+        
+        toastElement.addEventListener('hidden.bs.toast', function() {
+            toastContainer.remove();
+        });
+    }
+    
+    // Enhance filter form interactions
+    $('.filter-form input, .filter-form select').on('change', function() {
+        $(this).addClass('border-primary');
+    });
+});
+</script>
+{% endblock %} 

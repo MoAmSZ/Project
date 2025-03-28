@@ -1,0 +1,556 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}ویرایش پروفایل | دفترچه پیوند {% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Background with gradient overlay */
+    .profile-bg {
+        position: relative;
+        background-color: var(--primary-color);
+        background-image: url('https://images.unsplash.com/photo-1518199266791-5375a83190b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80');
+        background-size: cover;
+        background-position: center;
+        border-radius: 20px;
+        height: 200px;
+        overflow: hidden;
+        margin-bottom: 8rem;
+    }
+    
+    .profile-bg::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, var(--primary-color) 0%, rgba(255,107,136,0.8) 100%);
+        opacity: 0.85;
+    }
+    
+    .edit-form-card {
+        position: relative;
+        margin-top: -80px;
+        background-color: var(--card-bg);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: visible;
+        padding: 2rem;
+        padding-top: 6rem;
+    }
+    
+    .edit-form-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .edit-form-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .edit-form-subtitle {
+        color: #6c757d;
+    }
+    
+    .profile-avatar-container {
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        top: -120px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+    }
+    
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 5px solid white;
+        object-fit: cover;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+        background-color: var(--card-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 100;
+    }
+    
+    .profile-avatar-overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        opacity: 0;
+        transition: opacity 0.3s;
+        cursor: pointer;
+    }
+    
+    .profile-avatar-overlay i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .profile-avatar-container:hover .profile-avatar-overlay {
+        opacity: 1;
+    }
+    
+    .profile-avatar-container:hover .profile-avatar {
+        transform: scale(1.05);
+    }
+    
+    .form-section {
+        background-color: var(--card-bg);
+        border-radius: 15px;
+        padding: 1.8rem;
+        margin-bottom: 1.8rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--card-border);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .form-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .form-section-title {
+        display: flex;
+        align-items: center;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--card-border);
+        padding-bottom: 1rem;
+        color: var(--primary-color);
+    }
+    
+    .form-section-title i {
+        margin-left: 0.5rem;
+        font-size: 1.2rem;
+    }
+    
+    .form-floating > .form-control,
+    .form-floating > .form-select {
+        height: calc(3.5rem + 2px);
+        padding: 1rem 0.75rem;
+    }
+    
+    .form-floating > label {
+        padding: 1rem 0.75rem;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--dark-color);
+        display: flex;
+        align-items: center;
+    }
+    
+    .form-label i {
+        margin-left: 0.5rem;
+        color: var(--primary-color);
+    }
+    
+    .form-text {
+        color: #6c757d;
+    }
+    
+    .form-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .btn-save {
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        border: none;
+        padding: 0.8rem 2rem;
+        font-weight: 500;
+        transition: all 0.3s;
+        box-shadow: 0 5px 15px rgba(var(--bs-primary-rgb), 0.3);
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(var(--bs-primary-rgb), 0.4);
+    }
+    
+    .btn-save:active {
+        transform: translateY(-1px);
+    }
+    
+    .btn-cancel {
+        border: 1px solid #dee2e6;
+        padding: 0.8rem 2rem;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .btn-cancel:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .file-upload-preview {
+        width: 120px;
+        height: 120px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 1rem;
+        display: none;
+        border: 3px solid var(--primary-color);
+    }
+    
+    .file-upload-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .animate-on-scroll {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s, transform 0.5s;
+    }
+    
+    .animate-on-scroll.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .profile-bg {
+            height: 150px;
+            border-radius: 0 0 20px 20px;
+            margin-top: -1rem;
+            margin-bottom: 6rem;
+        }
+        
+        .edit-form-card {
+            margin-top: -60px;
+            padding-top: 4.5rem;
+        }
+        
+        .profile-avatar-container {
+            width: 120px;
+            height: 120px;
+            top: -100px;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+        }
+        
+        .edit-form-title {
+            font-size: 1.5rem;
+        }
+        
+        .form-section {
+            padding: 1.5rem;
+        }
+        
+        .form-section-title {
+            font-size: 1.2rem;
+        }
+        
+        .form-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Background with gradient overlay -->
+<div class="profile-bg"></div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Breadcrumb navigation -->
+            <nav aria-label="breadcrumb" class="mt-3 mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'profile' %}">پروفایل</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">ویرایش پروفایل</li>
+                </ol>
+            </nav>
+            
+            <!-- Edit form main card -->
+            <div class="edit-form-card">
+                <!-- Profile image upload section -->
+                <div class="profile-avatar-container">
+                    {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}" alt="{{ user.first_name }}" class="profile-avatar" id="avatar-preview">
+                    {% else %}
+                        <div class="profile-avatar" id="avatar-preview-container">
+                            <i class="fas fa-user fa-4x text-muted"></i>
+                        </div>
+                    {% endif %}
+                    <label for="profile_image" class="profile-avatar-overlay">
+                        <i class="fas fa-camera"></i>
+                        <span>آپلود تصویر</span>
+                    </label>
+                    <input type="file" id="profile_image" name="profile_image" class="d-none" accept="image/*">
+                </div>
+                
+                <form method="post" enctype="multipart/form-data" id="profile-form">
+                    {% csrf_token %}
+                    
+                    <div class="edit-form-header">
+                        <h2 class="edit-form-title">ویرایش پروفایل</h2>
+                        <p class="edit-form-subtitle">اطلاعات شخصی خود را تکمیل و به‌روزرسانی کنید</p>
+                    </div>
+                    
+                    <!-- Basic info section -->
+                    <div class="form-section animate-on-scroll">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-user-circle"></i>
+                            اطلاعات شخصی
+                        </h3>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}" placeholder="نام">
+                                    <label for="first_name">نام</label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}" placeholder="نام خانوادگی">
+                                    <label for="last_name">نام خانوادگی</label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div class="form-floating mb-3">
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" placeholder="ایمیل">
+                                    <label for="email">ایمیل</label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div class="form-floating mb-3">
+                                    <textarea class="form-control" id="bio" name="bio" style="height: 100px" placeholder="بیوگرافی">{{ user.profile.bio }}</textarea>
+                                    <label for="bio">بیوگرافی</label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="birth_date" class="form-label">
+                                    <i class="fas fa-birthday-cake"></i>
+                                    تاریخ تولد
+                                </label>
+                                <input type="date" class="form-control" id="birth_date" name="birth_date" value="{{ user.profile.birth_date|date:'Y-m-d' }}">
+                                <small class="form-text">فرمت: YYYY-MM-DD (مثال: 2023-01-15)</small>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="relationship_start_date" class="form-label">
+                                    <i class="fas fa-heart"></i>
+                                    تاریخ شروع رابطه
+                                </label>
+                                <input type="date" class="form-control" id="relationship_start_date" name="relationship_start_date" value="{{ user.profile.relationship_start_date|date:'Y-m-d' }}">
+                                <small class="form-text">فرمت: YYYY-MM-DD (مثال: 2023-01-15)</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact info section -->
+                    <div class="form-section animate-on-scroll">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-address-book"></i>
+                            اطلاعات تماس
+                        </h3>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="tel" class="form-control" id="phone" name="phone" value="{{ user.profile.phone }}" placeholder="شماره تماس">
+                                    <label for="phone">شماره تماس</label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div class="form-floating mb-3">
+                                    <textarea class="form-control" id="address" name="address" style="height: 100px" placeholder="آدرس">{{ user.profile.address }}</textarea>
+                                    <label for="address">آدرس</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Interests section -->
+                    <div class="form-section animate-on-scroll">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-heart"></i>
+                            علایق و سلیقه‌ها
+                        </h3>
+                        
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="interests" class="form-label">
+                                    <i class="fas fa-tags"></i>
+                                    علاقه‌مندی‌ها
+                                </label>
+                                <input type="text" class="form-control" id="interests" name="interests" value="{{ user.profile.interests }}" placeholder="مثال: موسیقی، ورزش، سفر، کتاب">
+                                <small class="form-text">علاقه‌مندی‌ها را با فاصله از هم جدا کنید</small>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="favorite_food" name="favorite_food" value="{{ user.profile.favorite_food }}" placeholder="غذای مورد علاقه">
+                                    <label for="favorite_food">غذای مورد علاقه</label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="favorite_color" name="favorite_color" value="{{ user.profile.favorite_color }}" placeholder="رنگ مورد علاقه">
+                                    <label for="favorite_color">رنگ مورد علاقه</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings section -->
+                    
+                    
+                    <!-- Action buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'profile' %}" class="btn btn-outline-secondary btn-cancel">
+                            <i class="fas fa-times"></i> انصراف
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-save">
+                            <i class="fas fa-save"></i> ذخیره تغییرات
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Show preview of selected profile image
+    document.getElementById('profile_image').addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const previewContainer = document.getElementById('avatar-preview-container');
+                const existingPreview = document.getElementById('avatar-preview');
+                
+                if (existingPreview) {
+                    // Update existing preview image
+                    existingPreview.src = e.target.result;
+                } else if (previewContainer) {
+                    // Create new preview image in the container
+                    previewContainer.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.id = 'avatar-preview';
+                    img.src = e.target.result;
+                    img.alt = 'تصویر پروفایل';
+                    img.classList.add('profile-avatar');
+                    previewContainer.parentNode.replaceChild(img, previewContainer);
+                }
+            }
+            
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+    
+    // Animation on scroll
+    document.addEventListener('DOMContentLoaded', function() {
+        const animateElements = document.querySelectorAll('.animate-on-scroll');
+        
+        function checkScroll() {
+            animateElements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                if (elementTop < windowHeight - 100) {
+                    element.classList.add('show');
+                }
+            });
+        }
+        
+        // Initial check
+        setTimeout(checkScroll, 100);
+        
+        // Check on scroll
+        window.addEventListener('scroll', checkScroll);
+    });
+    
+    // Form validation
+    document.getElementById('profile-form').addEventListener('submit', function(e) {
+        let hasError = false;
+        const firstName = document.getElementById('first_name');
+        const lastName = document.getElementById('last_name');
+        const email = document.getElementById('email');
+        
+        // Simple validation
+        if (firstName.value.trim() === '') {
+            firstName.classList.add('is-invalid');
+            hasError = true;
+        } else {
+            firstName.classList.remove('is-invalid');
+        }
+        
+        if (lastName.value.trim() === '') {
+            lastName.classList.add('is-invalid');
+            hasError = true;
+        } else {
+            lastName.classList.remove('is-invalid');
+        }
+        
+        if (email.value.trim() === '' || !email.value.includes('@')) {
+            email.classList.add('is-invalid');
+            hasError = true;
+        } else {
+            email.classList.remove('is-invalid');
+        }
+        
+        if (hasError) {
+            e.preventDefault();
+            // Scroll to the first error
+            document.querySelector('.is-invalid').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+        }
+    });
+</script>
+{% endblock %} 

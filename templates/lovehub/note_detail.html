@@ -1,0 +1,185 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}{{ note.title }} | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .note-detail {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .note-header {
+        background-color: #fff;
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .note-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin-bottom: 1rem;
+    }
+    
+    .note-meta {
+        display: flex;
+        justify-content: space-between;
+        border-top: 1px solid #eee;
+        padding-top: 1rem;
+        margin-top: 1rem;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .note-tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+    
+    .note-tag.tag-personal {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+    }
+    
+    .note-tag.tag-shared {
+        background-color: rgba(25, 135, 84, 0.1);
+        color: #198754;
+    }
+    
+    .note-tag.tag-important {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .note-content {
+        background-color: #fff;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+        line-height: 1.8;
+    }
+    
+    .note-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+    
+    .note-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'notes_list' %}">یادداشت‌ها</a></li>
+                <li class="breadcrumb-item active">{{ note.title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="note-detail">
+    <div class="note-header">
+        <div class="d-flex justify-content-between align-items-start">
+            <h1 class="note-title">{{ note.title }}</h1>
+            <div class="note-actions">
+                {% if note.created_by == request.user %}
+                <a href="{% url 'edit_note' note.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit"></i> ویرایش
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteNoteModal">
+                    <i class="fas fa-trash-alt"></i> حذف
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            {% if note.is_shared %}
+                <span class="note-tag tag-shared"><i class="fas fa-users"></i> مشترک</span>
+            {% else %}
+                <span class="note-tag tag-personal"><i class="fas fa-user"></i> شخصی</span>
+            {% endif %}
+            
+            {% if note.is_important %}
+                <span class="note-tag tag-important"><i class="fas fa-exclamation-circle"></i> مهم</span>
+            {% endif %}
+        </div>
+        
+        <div class="note-meta">
+            <div>
+                <i class="fas fa-user-edit"></i> {{ note.created_by.get_full_name|default:note.created_by.username }}
+            </div>
+            <div>
+                <i class="fas fa-calendar-alt"></i> {{ note.created_at|date:"Y/m/d" }} {{ note.created_at|time:"H:i" }}
+                {% if note.updated_at and note.updated_at != note.created_at %}
+                    <span class="text-muted ms-2">(آخرین ویرایش: {{ note.updated_at|date:"Y/m/d" }} {{ note.updated_at|time:"H:i" }})</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="note-content">
+        {{ note.content|safe }}
+    </div>
+    
+    {% if note.created_by == request.user %}
+    <div class="d-flex justify-content-between mb-4">
+        <a href="{% url 'notes_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right"></i> بازگشت به لیست یادداشت‌ها
+        </a>
+        <div>
+            <a href="{% url 'edit_note' note.id %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> ویرایش یادداشت
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center mb-4">
+        <a href="{% url 'notes_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right"></i> بازگشت به لیست یادداشت‌ها
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Delete Confirmation Modal -->
+{% if note.created_by == request.user %}
+<div class="modal fade" id="deleteNoteModal" tabindex="-1" aria-labelledby="deleteNoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteNoteModalLabel">تأیید حذف یادداشت</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>آیا از حذف یادداشت "{{ note.title }}" اطمینان دارید؟</p>
+                <p class="text-danger">این عملیات قابل بازگشت نیست!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <form method="post" action="{% url 'delete_note' note.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">حذف</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %} 

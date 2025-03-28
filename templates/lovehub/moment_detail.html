@@ -1,0 +1,400 @@
+{% extends "lovehub/base.html" %}
+{% load custom_filters %}
+
+{% block title %}{{ moment.title }} | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+<style>
+    .moment-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .moment-header {
+        background-color: #fff;
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .moment-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin-bottom: 1rem;
+    }
+    
+    .moment-meta {
+        display: flex;
+        justify-content: space-between;
+        border-top: 1px solid #eee;
+        padding-top: 1rem;
+        margin-top: 1rem;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .moment-tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+        background-color: rgba(var(--bs-primary-rgb), 0.15);
+    }
+    
+    .moment-image {
+        border-radius: 15px;
+        max-height: 500px;
+        width: 100%;
+        object-fit: cover;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .moment-content {
+        background-color: #fff;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+        line-height: 1.8;
+    }
+    
+    .audio-player {
+        background-color: #fff;
+        padding: 1rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+    }
+    
+    .map-container {
+        height: 300px;
+        border-radius: 15px;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .comments-section {
+        background-color: #fff;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .comment {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 10px;
+        background-color: #f8f9fa;
+    }
+    
+    .comment-meta {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .comment-content {
+        font-size: 0.95rem;
+    }
+    
+    .actions-section {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .like-btn {
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .like-btn.liked {
+        color: var(--primary-color);
+    }
+    
+    .like-count {
+        margin-left: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'moments_list' %}">لحظه‌ها</a></li>
+                <li class="breadcrumb-item active">{{ moment.title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="moment-container">
+    <!-- Moment Header -->
+    <div class="moment-header">
+        <div class="d-flex justify-content-between align-items-start">
+            <h1 class="moment-title">{{ moment.title }}</h1>
+            <div class="actions-section">
+                {% if moment.created_by == request.user %}
+                <a href="{% url 'edit_moment' moment.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit"></i> ویرایش
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMomentModal">
+                    <i class="fas fa-trash-alt"></i> حذف
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if moment.mood_tags %}
+            <div class="mb-3">
+                {% for tag in moment.mood_tags|split:"," %}
+                    <span class="moment-tag">{{ tag }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div class="moment-meta">
+            <div>
+                <i class="fas fa-user"></i> {{ moment.created_by.get_full_name|default:moment.created_by.username }}
+            </div>
+            <div>
+                <i class="fas fa-calendar-alt"></i> {{ moment.date|date:"Y/m/d" }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Moment Image -->
+    {% if moment.image %}
+        <img src="{{ moment.image.url }}" alt="{{ moment.title }}" class="moment-image">
+    {% endif %}
+    
+    <!-- Moment Content -->
+    <div class="moment-content">
+        {{ moment.description|linebreaks }}
+        
+        {% if moment.location_name %}
+            <div class="mt-4">
+                <p>
+                    <i class="fas fa-map-marker-alt text-danger"></i>
+                    <strong>مکان:</strong> {{ moment.location_name }}
+                </p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Audio Player -->
+    {% if moment.audio %}
+        <div class="audio-player">
+            <p class="mb-2"><i class="fas fa-volume-up"></i> فایل صوتی:</p>
+            <audio controls class="w-100">
+                <source src="{{ moment.audio.url }}" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+    {% endif %}
+    
+    <!-- Map -->
+    {% if moment.latitude and moment.longitude %}
+        <div class="map-container" id="map" 
+             data-latitude="{{ moment.latitude|stringformat:'f' }}" 
+             data-longitude="{{ moment.longitude|stringformat:'f' }}"
+             {% if moment.location_name %}data-location="{{ moment.location_name|escapejs }}"{% endif %}></div>
+    {% endif %}
+    
+    <!-- Like Section -->
+    <div class="d-flex align-items-center mb-4">
+        <button id="like-button" class="btn {% if user_liked %}btn-primary{% else %}btn-outline-primary{% endif %}" data-moment-id="{{ moment.id }}">
+            <i class="fas fa-heart"></i> <span id="likes-count">{{ moment.likes.count }}</span> لایک
+        </button>
+        
+        <a href="#comments" class="btn btn-outline-secondary ms-2">
+            <i class="fas fa-comment"></i> {{ comments.count }} نظر
+        </a>
+        
+        <div class="ms-auto">
+            <a href="{% url 'moments_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right"></i> بازگشت به لیست
+            </a>
+        </div>
+    </div>
+    
+    <!-- Comments Section -->
+    <div class="comments-section" id="comments">
+        <h4 class="mb-4"><i class="fas fa-comments"></i> نظرات ({{ comments.count }})</h4>
+        
+        <!-- Add Comment Form -->
+        <form method="post" action="{% url 'moment_comment' moment.id %}" class="mb-4">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="comment-text" class="form-label">نظر شما</label>
+                <textarea name="text" id="comment-text" rows="3" class="form-control" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i> ارسال نظر
+            </button>
+        </form>
+        
+        <!-- Comments List -->
+        {% if comments %}
+            {% for comment in comments %}
+                <div class="comment">
+                    <div class="comment-meta">
+                        <div>
+                            <i class="fas fa-user"></i> {{ comment.user.get_full_name|default:comment.user.username }}
+                        </div>
+                        <div>
+                            <i class="fas fa-clock"></i> {{ comment.created_at|date:"Y/m/d" }}
+                        </div>
+                    </div>
+                    <div class="comment-content">
+                        {{ comment.text|linebreaks }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-light text-center">
+                <p class="mb-0">هنوز نظری برای این لحظه ثبت نشده است.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+{% if moment.created_by == request.user %}
+<div class="modal fade" id="deleteMomentModal" tabindex="-1" aria-labelledby="deleteMomentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteMomentModalLabel">تأیید حذف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>آیا از حذف "{{ moment.title }}" اطمینان دارید؟</p>
+                <p class="text-danger">این عمل غیرقابل بازگشت است!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <form method="post" action="{% url 'delete_moment' moment.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">حذف</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Handle like button click with AJAX
+        $('#like-button').on('click', function() {
+            const momentId = $(this).data('moment-id');
+            const $likeButton = $(this);
+            const $likesCount = $('#likes-count');
+            
+            $.ajax({
+                url: "{% url 'like_moment' moment.id %}",
+                type: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                success: function(response) {
+                    if (response.liked) {
+                        $likeButton.removeClass('btn-outline-primary').addClass('btn-primary');
+                    } else {
+                        $likeButton.removeClass('btn-primary').addClass('btn-outline-primary');
+                    }
+                    $likesCount.text(response.count);
+                    
+                    // Show success message
+                    showToast(response.message, 'success');
+                },
+                error: function(xhr) {
+                    let errorMessage = 'خطایی رخ داد. لطفا مجددا تلاش کنید.';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMessage = xhr.responseJSON.error;
+                    }
+                    showToast(errorMessage, 'error');
+                }
+            });
+        });
+        
+        // Function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Function to show toast notifications
+        function showToast(message, type) {
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type === 'success' ? 'primary' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            const toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            toastContainer.innerHTML = toastHtml;
+            document.body.appendChild(toastContainer);
+            
+            const toastElement = toastContainer.querySelector('.toast');
+            const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastContainer.remove();
+            });
+        }
+    });
+</script>
+
+{% if moment.latitude and moment.longitude %}
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<script>
+    $(document).ready(function() {
+        const mapElement = document.getElementById('map');
+        const latitude = parseFloat(mapElement.dataset.latitude);
+        const longitude = parseFloat(mapElement.dataset.longitude);
+        const locationName = mapElement.dataset.location || 'موقعیت ثبت شده';
+        
+        const map = L.map('map').setView([latitude, longitude], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        L.marker([latitude, longitude]).addTo(map)
+            .bindPopup(locationName)
+            .openPopup();
+    });
+</script>
+{% endif %}
+{% endblock %} 

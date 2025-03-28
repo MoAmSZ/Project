@@ -1,0 +1,802 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}تقویم | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+<style>
+    /* Header Styles */
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+    }
+    
+    .bg-pattern {
+        background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 0 L100 50 L50 100 L0 50 Z" fill="white"/></svg>');
+        background-size: 20px;
+    }
+    
+    .opacity-10 {
+        opacity: 0.1;
+    }
+    
+    /* Calendar Container Styles */
+    .calendar-container {
+        background-color: var(--card-bg);
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+        border: 1px solid var(--card-border);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .calendar-container::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, transparent 60%);
+        opacity: 0.05;
+        border-radius: 0 15px 0 100%;
+        pointer-events: none;
+    }
+    
+    /* FullCalendar Customization */
+    .fc {
+        direction: rtl !important;
+        font-family: 'Vazirmatn', sans-serif;
+    }
+    
+    .fc-toolbar-title {
+        font-size: 1.5rem !important;
+        font-weight: 700;
+        color: var(--dark-color);
+    }
+    
+    .fc-button {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+        transition: all 0.3s !important;
+    }
+    
+    .fc-button:hover {
+        background-color: var(--secondary-color) !important;
+        border-color: var(--secondary-color) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
+    }
+    
+    .fc-button-active {
+        background-color: var(--secondary-color) !important;
+        border-color: var(--secondary-color) !important;
+    }
+    
+    .fc-event {
+        cursor: pointer;
+        border-radius: 6px !important;
+        font-size: 0.9rem;
+        padding: 4px;
+        transition: transform 0.2s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        border-width: 0 !important;
+    }
+    
+    .fc-event:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .fc-event-title {
+        font-weight: 500;
+        padding: 2px 0;
+    }
+    
+    .fc-day-today {
+        background-color: rgba(var(--bs-primary-rgb), 0.05) !important;
+    }
+    
+    .fc-header-toolbar {
+        margin-bottom: 1.5em !important;
+    }
+    
+    .fc td, .fc th {
+        border-color: var(--card-border) !important;
+    }
+    
+    .fc-day-today .fc-daygrid-day-number {
+        background-color: var(--primary-color);
+        color: white;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    
+    /* Event Types */
+    .fc-event.anniversary {
+        background-color: #ff6b6b;
+        border-color: #ff6b6b;
+    }
+    
+    .fc-event.birthday {
+        background-color: #339af0;
+        border-color: #339af0;
+    }
+    
+    .fc-event.special {
+        background-color: #9775fa;
+        border-color: #9775fa;
+    }
+    
+    .fc-event.reminder {
+        background-color: #51cf66;
+        border-color: #51cf66;
+    }
+    
+    .fc-event.moment {
+        background-color: #20c997;
+        border-color: #20c997;
+    }
+    
+    /* Event Tooltip */
+    .event-tooltip {
+        position: absolute;
+        z-index: 1070;
+        display: block;
+        visibility: visible;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        padding: 10px;
+        max-width: 300px;
+        color: #333;
+        border-left: 4px solid #ff6b6b;
+    }
+    
+    .event-tooltip-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .event-tooltip-type {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        margin-bottom: 5px;
+    }
+    
+    .event-tooltip-type.anniversary {
+        background-color: rgba(255, 107, 107, 0.1);
+        color: #ff6b6b;
+    }
+    
+    .event-tooltip-type.birthday {
+        background-color: rgba(51, 154, 240, 0.1);
+        color: #339af0;
+    }
+    
+    .event-tooltip-type.special {
+        background-color: rgba(151, 117, 250, 0.1);
+        color: #9775fa;
+    }
+    
+    .event-tooltip-type.reminder {
+        background-color: rgba(81, 207, 102, 0.1);
+        color: #51cf66;
+    }
+    
+    .event-tooltip-desc {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .event-tooltip-footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    /* Sidebar Styles */
+    .sidebar-card {
+        border-radius: 15px;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        background-color: var(--card-bg);
+        border: 1px solid var(--card-border);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .sidebar-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    
+    .sidebar-card-header {
+        padding: 1rem 1.25rem;
+        background-color: rgba(0,0,0,0.02);
+        border-bottom: 1px solid var(--card-border);
+    }
+    
+    .sidebar-card-title {
+        margin-bottom: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .sidebar-card-body {
+        padding: 1.25rem;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .legend-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        margin-left: 10px;
+    }
+    
+    .legend-anniversary {
+        background-color: #ff6b6b;
+    }
+    
+    .legend-birthday {
+        background-color: #339af0;
+    }
+    
+    .legend-special {
+        background-color: #9775fa;
+    }
+    
+    .legend-reminder {
+        background-color: #51cf66;
+    }
+    
+    .legend-moment {
+        background-color: #20c997;
+    }
+    
+    .upcoming-event {
+        display: flex;
+        align-items: flex-start;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--card-border);
+        transition: all 0.3s;
+    }
+    
+    .upcoming-event:hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.03);
+        transform: translateX(-3px);
+    }
+    
+    .upcoming-event:last-child {
+        border-bottom: none;
+    }
+    
+    .upcoming-event-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 12px;
+        flex-shrink: 0;
+        transition: all 0.3s;
+    }
+    
+    .upcoming-event:hover .upcoming-event-icon {
+        transform: scale(1.1);
+    }
+    
+    .upcoming-event-icon.anniversary {
+        background-color: rgba(255, 107, 107, 0.1);
+        color: #ff6b6b;
+    }
+    
+    .upcoming-event-icon.birthday {
+        background-color: rgba(51, 154, 240, 0.1);
+        color: #339af0;
+    }
+    
+    .upcoming-event-icon.special {
+        background-color: rgba(151, 117, 250, 0.1);
+        color: #9775fa;
+    }
+    
+    .upcoming-event-icon.reminder {
+        background-color: rgba(81, 207, 102, 0.1);
+        color: #51cf66;
+    }
+    
+    .upcoming-event-content {
+        flex-grow: 1;
+    }
+    
+    .upcoming-event-title {
+        font-weight: 600;
+        margin-bottom: 4px;
+        transition: color 0.2s;
+    }
+    
+    .upcoming-event:hover .upcoming-event-title {
+        color: var(--primary-color);
+    }
+    
+    .upcoming-event-date {
+        font-size: 0.8rem;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .upcoming-event-days {
+        background-color: var(--primary-color);
+        color: white;
+        font-size: 0.75rem;
+        padding: 3px 10px;
+        border-radius: 30px;
+        margin-right: auto;
+        margin-top: 5px;
+        font-weight: 500;
+        box-shadow: 0 2px 5px rgba(var(--bs-primary-rgb), 0.2);
+        transition: all 0.3s;
+    }
+    
+    .upcoming-event:hover .upcoming-event-days {
+        background-color: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(var(--bs-primary-rgb), 0.25);
+    }
+    
+    /* Modal Styles */
+    #eventModal .modal-content {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    #eventModal .modal-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+        position: relative;
+    }
+    
+    #eventModal .modal-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 0 L100 50 L50 100 L0 50 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+        background-size: 20px;
+        opacity: 0.3;
+        pointer-events: none;
+    }
+    
+    #eventModal .modal-title {
+        font-weight: 700;
+    }
+    
+    #eventModal .btn-close {
+        color: white;
+        filter: invert(1) grayscale(100%) brightness(200%);
+        opacity: 0.8;
+    }
+    
+    #eventModal .modal-body {
+        padding: 1.5rem;
+    }
+    
+    #eventModal .modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    #eventModal #modalEventBadge {
+        padding: 5px 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border-radius: 30px;
+    }
+    
+    #eventModal #modalEventTitle {
+        margin-top: 0.5rem;
+        color: var(--dark-color);
+    }
+    
+    #eventModal #modalEventDesc {
+        background-color: rgba(0,0,0,0.02);
+        padding: 1rem;
+        border-radius: 10px;
+        border-left: 3px solid var(--primary-color);
+        margin: 1rem 0;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    
+    #eventModal #viewEventBtn {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        padding: 0.5rem 1.25rem;
+        box-shadow: 0 3px 6px rgba(var(--bs-primary-rgb), 0.15);
+        transition: all 0.3s;
+    }
+    
+    #eventModal #viewEventBtn:hover {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 12px rgba(var(--bs-primary-rgb), 0.2);
+    }
+    
+    .sidebar-sticky {
+        position: sticky;
+        top: 2rem;
+    }
+    
+    @media (max-width: 767.98px) {
+        .calendar-container {
+            padding: 1rem;
+        }
+        
+        .fc-header-toolbar {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .fc-toolbar-title {
+            font-size: 1.2rem !important;
+        }
+        
+        .sidebar-sticky {
+            position: static;
+            margin-top: 1rem;
+        }
+        
+        .fc-button {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.85rem;
+        }
+        
+        .sidebar-card {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calendar-header bg-gradient-primary mb-4 p-4 rounded-3 shadow-sm position-relative overflow-hidden">
+    <div class="position-absolute top-0 start-0 w-100 h-100 bg-pattern opacity-10"></div>
+    <div class="row align-items-center position-relative">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb" class="mb-2">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-white opacity-75">داشبورد</a></li>
+                    <li class="breadcrumb-item active text-white" aria-current="page">تقویم</li>
+                </ol>
+            </nav>
+            <h4 class="mb-2 text-white d-flex align-items-center gap-2">
+                <i class="fas fa-calendar-alt"></i> تقویم رویدادها و مناسبت‌ها
+            </h4>
+            <p class="mb-0 text-white opacity-75">برنامه‌ریزی و پیگیری تمامی رویدادهای مهم زندگی مشترک</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'events_list' %}" class="btn btn-light btn-lg me-2" style="z-index: 100; position: relative;">
+                <i class="fas fa-list me-2"></i> لیست رویدادها
+            </a>
+            <a href="{% url 'add_event' %}" class="btn btn-success btn-lg" style="z-index: 100; position: relative;">
+                <i class="fas fa-plus me-2"></i> افزودن
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Calendar -->
+    <div class="col-lg-9 mb-4">
+        <div class="calendar-container">
+            <div id="calendar"></div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-3">
+        <div class="sidebar-sticky">
+            <!-- Legend -->
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">
+                    <h5 class="sidebar-card-title"><i class="fas fa-info-circle"></i> راهنمای رنگ‌ها</h5>
+                </div>
+                <div class="sidebar-card-body">
+                    <div class="legend-item">
+                        <div class="legend-color legend-anniversary"></div>
+                        <span>سالگرد</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-birthday"></div>
+                        <span>تولد</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-special"></div>
+                        <span>مناسبت خاص</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-reminder"></div>
+                        <span>یادآوری</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-moment"></div>
+                        <span>لحظه</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Upcoming Events -->
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">
+                    <h5 class="sidebar-card-title"><i class="fas fa-clock"></i> رویدادهای نزدیک</h5>
+                </div>
+                <div class="sidebar-card-body">
+                    {% if upcoming_events %}
+                        {% for event in upcoming_events %}
+                            <div class="upcoming-event">
+                                <div class="upcoming-event-icon {{ event.event_type }}">
+                                    {% if event.event_type == 'anniversary' %}
+                                        <i class="fas fa-heart"></i>
+                                    {% elif event.event_type == 'birthday' %}
+                                        <i class="fas fa-birthday-cake"></i>
+                                    {% elif event.event_type == 'special' %}
+                                        <i class="fas fa-star"></i>
+                                    {% elif event.event_type == 'reminder' %}
+                                        <i class="fas fa-bell"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="upcoming-event-content">
+                                    <div class="upcoming-event-title">{{ event.title }}</div>
+                                    <div class="upcoming-event-date">{{ event.date|date:"Y/m/d" }}</div>
+                                    <div class="upcoming-event-days">
+                                        {% if event.days_until == 0 %}
+                                            امروز
+                                        {% elif event.days_until == 1 %}
+                                            فردا
+                                        {% else %}
+                                            {{ event.days_until }} روز دیگر
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <p class="text-muted mb-0">رویداد نزدیکی وجود ندارد</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{% url 'add_event' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> افزودن رویداد جدید
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Details Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalLabel">جزئیات رویداد</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalEventTitle" class="fw-bold fs-5 mb-2"></div>
+                
+                <div class="mb-3">
+                    <span id="modalEventBadge" class="badge"></span>
+                </div>
+                
+                <div id="modalEventDesc" class="mb-3"></div>
+                
+                <div class="d-flex justify-content-between text-muted small">
+                    <div>
+                        <i class="fas fa-calendar-alt"></i> <span id="modalEventDate"></span>
+                    </div>
+                    <div>
+                        <i class="fas fa-user"></i> <span id="modalEventCreator"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                <button type="button" class="btn btn-primary" id="viewEventBtn">مشاهده کامل</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Force refresh for deleted events
+        {% if force_refresh or request.session.calendar_refresh %}
+        if (window.performance && window.performance.navigation.type === window.performance.navigation.TYPE_BACK_FORWARD) {
+            window.location.reload(true);
+        }
+        {% endif %}
+        
+        var calendarEl = document.getElementById('calendar');
+        var today = new Date();
+        
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'fa',
+            direction: 'rtl',
+            headerToolbar: {
+                left: 'title',
+                center: '',
+                right: 'prev,next today'
+            },
+            buttonText: {
+                today: 'امروز'
+            },
+            dayMaxEvents: true,
+            events: [
+                {% for event in events %}
+                {
+                    id: '{{ event.id }}',
+                    title: '{{ event.title }}',
+                    start: '{{ event.date|date:"Y-m-d" }}',
+                    allDay: true,
+                    className: '{{ event.event_type }}',
+                    extendedProps: {
+                        type: '{{ event.event_type }}',
+                        description: '{{ event.description|default:"" }}',
+                        is_recurring: {{ event.is_recurring|lower }},
+                        days_until: {{ event.days_until }},
+                        creator: '{{ event.created_by.username }}'
+                    }
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+                {% if moments %}
+                ,
+                {% for moment in moments %}
+                {
+                    id: 'moment-{{ moment.id }}',
+                    title: '{{ moment.title }}',
+                    start: '{{ moment.date|date:"Y-m-d" }}',
+                    allDay: true,
+                    className: 'moment',
+                    extendedProps: {
+                        type: 'moment',
+                        description: '{{ moment.description|default:"" }}',
+                        location: '{{ moment.location_name|default:"" }}',
+                        creator: '{{ moment.created_by.username }}'
+                    }
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+                {% endif %}
+            ],
+            eventClick: function(info) {
+                var id = info.event.id;
+                if (id.startsWith('moment-')) {
+                    id = id.replace('moment-', '');
+                    window.location.href = '/moments/' + id + '/';
+                } else {
+                    window.location.href = '/events/' + id + '/';
+                }
+            },
+            eventMouseEnter: function(info) {
+                // Create tooltip
+                var tooltip = document.createElement('div');
+                tooltip.classList.add('event-tooltip');
+                
+                var typeName = '';
+                var typeClass = '';
+                
+                switch(info.event.extendedProps.type) {
+                    case 'anniversary':
+                        typeName = 'سالگرد';
+                        typeClass = 'anniversary';
+                        break;
+                    case 'birthday':
+                        typeName = 'تولد';
+                        typeClass = 'birthday';
+                        break;
+                    case 'special':
+                        typeName = 'مناسبت خاص';
+                        typeClass = 'special';
+                        break;
+                    case 'reminder':
+                        typeName = 'یادآوری';
+                        typeClass = 'reminder';
+                        break;
+                    case 'moment':
+                        typeName = 'لحظه';
+                        typeClass = 'moment';
+                        break;
+                }
+                
+                var tooltipContent = `
+                    <div class="event-tooltip-title">${info.event.title}</div>
+                    <div class="event-tooltip-type ${typeClass}">${typeName}</div>
+                `;
+                
+                if (info.event.extendedProps.description) {
+                    tooltipContent += `<div class="event-tooltip-desc">${info.event.extendedProps.description}</div>`;
+                }
+                
+                if (info.event.extendedProps.type !== 'moment' && info.event.extendedProps.days_until !== undefined) {
+                    var daysText = '';
+                    if (info.event.extendedProps.days_until > 0) {
+                        daysText = `${info.event.extendedProps.days_until} روز مانده`;
+                    } else if (info.event.extendedProps.days_until === 0) {
+                        daysText = 'امروز';
+                    } else {
+                        daysText = `${Math.abs(info.event.extendedProps.days_until)} روز گذشته`;
+                    }
+                    tooltipContent += `<div class="event-tooltip-days">${daysText}</div>`;
+                }
+                
+                if (info.event.extendedProps.location) {
+                    tooltipContent += `<div class="event-tooltip-location"><i class="fas fa-map-marker-alt me-1"></i> ${info.event.extendedProps.location}</div>`;
+                }
+                
+                tooltip.innerHTML = tooltipContent;
+                document.body.appendChild(tooltip);
+                
+                // Position the tooltip
+                var rect = info.el.getBoundingClientRect();
+                tooltip.style.top = rect.bottom + window.scrollY + 5 + 'px';
+                tooltip.style.left = rect.left + window.scrollX + 'px';
+                
+                // Store tooltip element to remove it later
+                info.event.extendedProps.tooltip = tooltip;
+            },
+            eventMouseLeave: function(info) {
+                // Remove tooltip
+                if (info.event.extendedProps.tooltip) {
+                    info.event.extendedProps.tooltip.remove();
+                    info.event.extendedProps.tooltip = null;
+                }
+            }
+        });
+        
+        calendar.render();
+    });
+</script>
+{% endblock %} 

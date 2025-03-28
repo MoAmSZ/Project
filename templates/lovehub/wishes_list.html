@@ -1,0 +1,327 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}آرزوها | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #ff7eb3 0%, #7952b3 100%);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        color: white;
+    }
+    
+    .page-header .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 15px;
+    }
+    
+    .page-header .breadcrumb-item,
+    .page-header .breadcrumb-item a {
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .page-header .breadcrumb-item.active {
+        color: white;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        max-width: 80%;
+    }
+    
+    .btn-floating {
+        border-radius: 50px;
+        padding: 10px 20px;
+        font-weight: 600;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+    
+    .btn-floating:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    
+    .wish-card {
+        transition: all 0.3s;
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        border: none;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .wish-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .wish-completed .card-header {
+        background-color: var(--secondary-color);
+    }
+    
+    .wish-title {
+        text-decoration: none;
+        color: inherit;
+        font-weight: 600;
+    }
+    
+    .wish-completed .wish-title {
+        text-decoration: line-through;
+        color: #6c757d;
+    }
+    
+    .wish-toggle {
+        cursor: pointer;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid #ced4da;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    
+    .wish-toggle:hover {
+        border-color: var(--primary-color);
+    }
+    
+    .wish-completed .wish-toggle {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+    
+    .wish-creator {
+        font-size: 0.8rem;
+        color: #6c757d;
+        background-color: #f8f9fa;
+        padding: 3px 8px;
+        border-radius: 20px;
+    }
+    
+    .wish-date {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .card-action-buttons .btn {
+        padding: 5px 10px;
+        font-size: 0.85rem;
+    }
+    
+    .filter-card, .stats-card {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 25px;
+    }
+    
+    .filter-card .card-header, .stats-card .card-header {
+        background-color: #f8f9fa;
+        border-bottom: none;
+        padding: 15px 20px;
+    }
+    
+    .empty-state {
+        background-color: #f8f9fa;
+        border-radius: 15px;
+        padding: 40px 20px;
+        text-align: center;
+    }
+    
+    .empty-state i {
+        color: #dee2e6;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">خانه</a></li>
+            <li class="breadcrumb-item active" aria-current="page">آرزوها</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-star me-2"></i> کپسول آرزوهای مشترک</h1>
+            <p>لیستی از تمام آرزوهای مشترک و اهداف شما برای آینده</p>
+        </div>
+        <a href="{% url 'add_wish' %}" class="btn btn-light btn-floating">
+            <i class="fas fa-plus me-2"></i> افزودن آرزو
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card filter-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-filter me-2"></i> فیلترها</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" action="">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">وضعیت</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="status" id="status-all" value="" {% if not status_filter %}checked{% endif %}>
+                            <label class="form-check-label" for="status-all">همه</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="status" id="status-completed" value="completed" {% if status_filter == 'completed' %}checked{% endif %}>
+                            <label class="form-check-label" for="status-completed">انجام شده</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="status" id="status-pending" value="pending" {% if status_filter == 'pending' %}checked{% endif %}>
+                            <label class="form-check-label" for="status-pending">انجام نشده</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">مرتب‌سازی</label>
+                        <select class="form-select" name="sort">
+                            <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>جدیدترین</option>
+                            <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>قدیمی‌ترین</option>
+                            <option value="completed-first" {% if sort_by == 'completed-first' %}selected{% endif %}>انجام شده‌ها اول</option>
+                            <option value="pending-first" {% if sort_by == 'pending-first' %}selected{% endif %}>انجام نشده‌ها اول</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> اعمال فیلترها
+                        </button>
+                    </div>
+                    
+                    {% if is_filtered %}
+                    <div class="d-grid mt-2">
+                        <a href="{% url 'wishes_list' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-times"></i> حذف فیلترها
+                        </a>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+        
+        <!-- Wishes Stats -->
+        <div class="card stats-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i> آمار</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center mb-4">
+                    <div class="col-6">
+                        <h3 class="mb-1">{{ total_count }}</h3>
+                        <p class="mb-0 text-muted">کل آرزوها</p>
+                    </div>
+                    <div class="col-6">
+                        <h3 class="mb-1">{{ completed_count }}</h3>
+                        <p class="mb-0 text-muted">انجام شده</p>
+                    </div>
+                </div>
+                
+                <label class="form-label fw-bold small mb-2">پیشرفت</label>
+                <div class="progress" style="height: 10px; border-radius: 5px;">
+                    {% if total_count > 0 %}
+                    <div class="progress-bar bg-success" style="width: {{ completion_percentage }}%; border-radius: 5px;"></div>
+                    {% else %}
+                    <div class="progress-bar bg-success" style="width: 0%; border-radius: 5px;"></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        {% if wishes %}
+            <div class="wishes-container">
+                {% for wish in wishes %}
+                    <div class="card wish-card {% if wish.is_completed %}wish-completed{% endif %}" data-status="{% if wish.is_completed %}completed{% else %}pending{% endif %}" data-aos="fade-up" data-aos-delay="{{ forloop.counter }}00">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <form method="post" action="{% url 'toggle_wish' wish.id %}" class="me-2">
+                                    {% csrf_token %}
+                                    <button type="submit" class="wish-toggle btn p-0">
+                                        {% if wish.is_completed %}
+                                            <i class="fas fa-check"></i>
+                                        {% endif %}
+                                    </button>
+                                </form>
+                                <h5 class="mb-0 wish-title">
+                                    {{ wish.title }}
+                                    {% if wish.is_important %}
+                                        <span class="text-danger ms-2"><i class="fas fa-heart"></i></span>
+                                    {% endif %}
+                                </h5>
+                            </div>
+                            <span class="wish-creator">{{ wish.created_by.username }}</span>
+                        </div>
+                        <div class="card-body">
+                            {% if wish.description %}
+                                <p class="card-text">{{ wish.description }}</p>
+                            {% endif %}
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="wish-date">
+                                    <i class="fas fa-clock me-1"></i> {{ wish.created_at|date:"Y/m/d" }}
+                                </span>
+                                
+                                {% if wish.created_by == user %}
+                                <div class="btn-group card-action-buttons">
+                                    <a href="{% url 'edit_wish' wish.id %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-edit"></i> ویرایش
+                                    </a>
+                                    <form method="post" action="{% url 'delete_wish' wish.id %}" class="d-inline" onsubmit="return confirm('آیا از حذف آرزوی {{ wish.title }} اطمینان دارید؟');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-star fa-4x mb-3"></i>
+                <h4>هنوز آرزویی ثبت نشده است!</h4>
+                <p class="text-muted mb-4">برای ثبت اولین آرزوی مشترک خود، روی دکمه "افزودن آرزو" کلیک کنید.</p>
+                <a href="{% url 'add_wish' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i> افزودن آرزو
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animation for cards
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+    });
+</script>
+{% endblock %} 

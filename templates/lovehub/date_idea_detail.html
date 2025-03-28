@@ -1,0 +1,346 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}{{ idea.title }} | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .date-idea-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .date-idea-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .date-idea-meta {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.75rem;
+        margin: 1rem 0;
+    }
+    
+    .date-idea-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        color: var(--primary-color);
+    }
+    
+    .budget-free {
+        background-color: rgba(25, 135, 84, 0.1);
+        color: #198754;
+    }
+    
+    .budget-low {
+        background-color: rgba(13, 202, 240, 0.1);
+        color: #0dcaf0;
+    }
+    
+    .budget-medium {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+    
+    .budget-high {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .location-indoor {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
+    
+    .location-outdoor {
+        background-color: rgba(25, 135, 84, 0.1);
+        color: #198754;
+    }
+    
+    .mood-energetic {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .mood-calm {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+    }
+    
+    .mood-romantic {
+        background-color: rgba(214, 51, 132, 0.1);
+        color: #d63384;
+    }
+    
+    .mood-adventurous {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+    
+    .mood-creative {
+        background-color: rgba(111, 66, 193, 0.1);
+        color: #6f42c1;
+    }
+    
+    .date-idea-content {
+        padding: 2rem;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+    
+    .date-idea-description {
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: #444;
+        white-space: pre-line;
+    }
+    
+    .date-idea-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1.5rem;
+        margin-top: 1.5rem;
+        border-top: 1px solid #f0f0f0;
+    }
+    
+    .date-idea-author {
+        color: #6c757d;
+    }
+    
+    .rating-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+    
+    .rating-box {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .rating-stats {
+        display: flex;
+        gap: 1.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    .like-stat, .dislike-stat {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6c757d;
+    }
+    
+    .like-button, .dislike-button {
+        border: none;
+        background: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border: 1px solid #dee2e6;
+        font-size: 1rem;
+    }
+    
+    .like-button:hover {
+        background-color: rgba(25, 135, 84, 0.1);
+        border-color: #198754;
+        color: #198754;
+    }
+    
+    .dislike-button:hover {
+        background-color: rgba(220, 53, 69, 0.1);
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+    
+    .like-button.active {
+        background-color: rgba(25, 135, 84, 0.2);
+        border-color: #198754;
+        color: #198754;
+    }
+    
+    .dislike-button.active {
+        background-color: rgba(220, 53, 69, 0.2);
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'date_ideas' %}">ایده‌های قرار</a></li>
+                <li class="breadcrumb-item active">{{ idea.title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="detail-container">
+    <div class="date-idea-header">
+        <h1 class="date-idea-title">{{ idea.title }}</h1>
+        
+        <div class="date-idea-meta">
+            <span class="date-idea-badge budget-{{ idea.budget }}">
+                {% if idea.budget == 'free' %}
+                    <i class="fas fa-coins"></i> رایگان
+                {% elif idea.budget == 'low' %}
+                    <i class="fas fa-coins"></i> کم هزینه
+                {% elif idea.budget == 'medium' %}
+                    <i class="fas fa-coins"></i> متوسط
+                {% elif idea.budget == 'high' %}
+                    <i class="fas fa-coins"></i> گران
+                {% endif %}
+            </span>
+            
+            <span class="date-idea-badge location-{{ idea.location }}">
+                {% if idea.location == 'indoor' %}
+                    <i class="fas fa-home"></i> داخل خانه
+                {% elif idea.location == 'outdoor' %}
+                    <i class="fas fa-tree"></i> بیرون از خانه
+                {% elif idea.location == 'any' %}
+                    <i class="fas fa-map-marker-alt"></i> هر جایی
+                {% endif %}
+            </span>
+            
+            <span class="date-idea-badge mood-{{ idea.mood }}">
+                {% if idea.mood == 'energetic' %}
+                    <i class="fas fa-bolt"></i> پرانرژی
+                {% elif idea.mood == 'calm' %}
+                    <i class="fas fa-spa"></i> آرام
+                {% elif idea.mood == 'romantic' %}
+                    <i class="fas fa-heart"></i> عاشقانه
+                {% elif idea.mood == 'adventurous' %}
+                    <i class="fas fa-compass"></i> ماجراجویانه
+                {% elif idea.mood == 'creative' %}
+                    <i class="fas fa-palette"></i> خلاقانه
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    
+    <div class="date-idea-content">
+        <p class="date-idea-description">{{ idea.description }}</p>
+        
+        <div class="date-idea-footer">
+            <div class="date-idea-author">
+                <i class="fas fa-user"></i> پیشنهاد از: {{ idea.created_by.get_full_name|default:idea.created_by.username }}
+                <br>
+                <small class="text-muted">
+                    <i class="fas fa-clock"></i> {{ idea.created_at|date:"Y/m/d" }}
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-star"></i> امتیازدهی</h5>
+        </div>
+        <div class="card-body">
+            <div class="rating-container">
+                <p class="text-muted">نظر شما در مورد این ایده قرار چیست؟</p>
+                
+                <div class="rating-box">
+                    <form method="post" action="{% url 'rate_date_idea' idea.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="liked" value="true">
+                        <button type="submit" class="like-button {% if user_rating and user_rating.liked %}active{% endif %}">
+                            <i class="fas fa-thumbs-up"></i> می‌پسندم
+                        </button>
+                    </form>
+                    
+                    <form method="post" action="{% url 'rate_date_idea' idea.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="liked" value="false">
+                        <button type="submit" class="dislike-button {% if user_rating and not user_rating.liked %}active{% endif %}">
+                            <i class="fas fa-thumbs-down"></i> نمی‌پسندم
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="rating-stats">
+                    <div class="like-stat">
+                        <i class="fas fa-thumbs-up"></i> {{ like_count }} نفر
+                    </div>
+                    <div class="dislike-stat">
+                        <i class="fas fa-thumbs-down"></i> {{ dislike_count }} نفر
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if is_creator %}
+    <div class="action-buttons">
+        <a href="{% url 'edit_date_idea' idea.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> ویرایش ایده
+        </a>
+        
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            <i class="fas fa-trash"></i> حذف ایده
+        </button>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">تایید حذف</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    آیا از حذف این ایده قرار اطمینان دارید؟ این عمل غیرقابل بازگشت است.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <form method="post" action="{% url 'delete_date_idea' idea.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">حذف</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="mt-4">
+        <a href="{% url 'date_ideas' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right"></i> بازگشت به لیست ایده‌ها
+        </a>
+    </div>
+</div>
+{% endblock %} 

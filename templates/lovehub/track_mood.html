@@ -1,0 +1,437 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}پیگیری حال و هوا | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .mood-tracker-card {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        border: none;
+        margin-bottom: 1.5rem;
+    }
+    
+    .mood-header {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .mood-header h3 {
+        margin-bottom: 1rem;
+    }
+    
+    .mood-options {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+    
+    .mood-option {
+        display: inline-block;
+        width: 70px;
+        text-align: center;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 10px;
+        transition: all 0.3s;
+        position: relative;
+    }
+    
+    .mood-option:hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        transform: translateY(-5px);
+    }
+    
+    .mood-option input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+    
+    .mood-option.active {
+        background-color: rgba(var(--bs-primary-rgb), 0.2);
+        box-shadow: 0 5px 15px rgba(var(--bs-primary-rgb), 0.2);
+        transform: translateY(-5px);
+    }
+    
+    .mood-emoji {
+        font-size: 2rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    
+    .mood-name {
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .current-mood {
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+    
+    .current-mood.happy {
+        background-color: rgba(25, 135, 84, 0.1);
+    }
+    
+    .current-mood.sad {
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+    
+    .current-mood.love {
+        background-color: rgba(214, 51, 132, 0.1);
+    }
+    
+    .current-mood.angry {
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+    
+    .current-mood.neutral {
+        background-color: rgba(108, 117, 125, 0.1);
+    }
+    
+    .current-mood-emoji {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .current-mood-date {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+    
+    .current-mood-time {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+    
+    .mood-history {
+        display: flex;
+        overflow-x: auto;
+        padding: 1rem 0.5rem;
+        gap: 0.5rem;
+    }
+    
+    .mood-day {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 60px;
+    }
+    
+    .mood-day-emoji {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .mood-day-date {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .partner-mood {
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        position: relative;
+        border: 1px dashed #dee2e6;
+    }
+    
+    .partner-photo {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+    }
+    
+    .partner-name {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .mood-chart {
+        height: 250px;
+        margin-top: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                <li class="breadcrumb-item active" aria-current="page">پیگیری حال و هوا</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mood-tracker-card">
+            <div class="mood-header">
+                <h3>حال و هوای امروز شما چطور است؟</h3>
+                <p class="text-muted">حس و حال خود را انتخاب کنید و با همسرتان به اشتراک بگذارید.</p>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'track_mood' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mood-options">
+                        <label class="mood-option {% if today_mood and today_mood.mood == 'happy' %}active{% endif %}">
+                            <input type="radio" name="mood" value="happy" {% if today_mood and today_mood.mood == 'happy' %}checked{% endif %}>
+                            <span class="mood-emoji">😊</span>
+                            <span class="mood-name">خوشحال</span>
+                        </label>
+                        
+                        <label class="mood-option {% if today_mood and today_mood.mood == 'sad' %}active{% endif %}">
+                            <input type="radio" name="mood" value="sad" {% if today_mood and today_mood.mood == 'sad' %}checked{% endif %}>
+                            <span class="mood-emoji">😔</span>
+                            <span class="mood-name">غمگین</span>
+                        </label>
+                        
+                        <label class="mood-option {% if today_mood and today_mood.mood == 'love' %}active{% endif %}">
+                            <input type="radio" name="mood" value="love" {% if today_mood and today_mood.mood == 'love' %}checked{% endif %}>
+                            <span class="mood-emoji">😍</span>
+                            <span class="mood-name">عاشق</span>
+                        </label>
+                        
+                        <label class="mood-option {% if today_mood and today_mood.mood == 'angry' %}active{% endif %}">
+                            <input type="radio" name="mood" value="angry" {% if today_mood and today_mood.mood == 'angry' %}checked{% endif %}>
+                            <span class="mood-emoji">😡</span>
+                            <span class="mood-name">عصبانی</span>
+                        </label>
+                        
+                        <label class="mood-option {% if today_mood and today_mood.mood == 'neutral' %}active{% endif %}">
+                            <input type="radio" name="mood" value="neutral" {% if today_mood and today_mood.mood == 'neutral' %}checked{% endif %}>
+                            <span class="mood-emoji">😐</span>
+                            <span class="mood-name">معمولی</span>
+                        </label>
+                        
+                        <label class="mood-option {% if today_mood and today_mood.mood == 'tired' %}active{% endif %}">
+                            <input type="radio" name="mood" value="tired" {% if today_mood and today_mood.mood == 'tired' %}checked{% endif %}>
+                            <span class="mood-emoji">😫</span>
+                            <span class="mood-name">خسته</span>
+                        </label>
+                        
+                        <label class="mood-option {% if today_mood and today_mood.mood == 'excited' %}active{% endif %}">
+                            <input type="radio" name="mood" value="excited" {% if today_mood and today_mood.mood == 'excited' %}checked{% endif %}>
+                            <span class="mood-emoji">🤩</span>
+                            <span class="mood-name">هیجان‌زده</span>
+                        </label>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="note" class="form-label">یادداشت (اختیاری)</label>
+                        <textarea class="form-control" id="note" name="note" rows="3" placeholder="درباره احساس خود بنویسید...">{{ today_mood.note }}</textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> {% if today_mood %}بروزرسانی حال و هوا{% else %}ثبت حال و هوا{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if mood_history %}
+        <div class="card mood-tracker-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> نمودار حال و هوا</h5>
+            </div>
+            <div class="card-body">
+                <div class="mood-chart">
+                    <!-- نمودار در اینجا نمایش داده می‌شود -->
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <p class="text-muted">نمودار حال و هوای شما در دو هفته گذشته</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        {% if today_mood %}
+        <div class="card mood-tracker-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-smile"></i> حال و هوای امروز شما</h5>
+            </div>
+            <div class="card-body">
+                <div class="current-mood {{ today_mood.mood }}">
+                    <div class="current-mood-date">{{ today|date:"Y/m/d" }}</div>
+                    <div class="current-mood-time">{{ today|time:"H:i"|default:"" }}</div>
+                    
+                    {% if today_mood.mood == 'happy' %}
+                        <div class="current-mood-emoji">😊</div>
+                        <h5>خوشحال</h5>
+                    {% elif today_mood.mood == 'sad' %}
+                        <div class="current-mood-emoji">😔</div>
+                        <h5>غمگین</h5>
+                    {% elif today_mood.mood == 'love' %}
+                        <div class="current-mood-emoji">😍</div>
+                        <h5>عاشق</h5>
+                    {% elif today_mood.mood == 'angry' %}
+                        <div class="current-mood-emoji">😡</div>
+                        <h5>عصبانی</h5>
+                    {% elif today_mood.mood == 'neutral' %}
+                        <div class="current-mood-emoji">😐</div>
+                        <h5>معمولی</h5>
+                    {% elif today_mood.mood == 'tired' %}
+                        <div class="current-mood-emoji">😫</div>
+                        <h5>خسته</h5>
+                    {% elif today_mood.mood == 'excited' %}
+                        <div class="current-mood-emoji">🤩</div>
+                        <h5>هیجان‌زده</h5>
+                    {% endif %}
+                    
+                    {% if today_mood.note %}
+                    <div class="mt-3">
+                        <p>{{ today_mood.note }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if profile.partner and partner_mood %}
+        <div class="card mood-tracker-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-heart"></i> حال و هوای همسر شما</h5>
+            </div>
+            <div class="card-body">
+                <div class="partner-mood {{ partner_mood.mood }}">
+                    <div class="current-mood-date">{{ today|date:"Y/m/d" }}</div>
+                    <div class="current-mood-time">{{ today|time:"H:i"|default:"" }}</div>
+                    
+                    {% if profile.partner.avatar %}
+                        <img src="{{ profile.partner.avatar.url }}" alt="{{ profile.partner.user.get_full_name }}" class="partner-photo">
+                    {% else %}
+                        <div class="partner-photo-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="partner-name">{{ profile.partner.user.get_full_name|default:profile.partner.user.username }}</div>
+                    
+                    {% if partner_mood.mood == 'happy' %}
+                        <div class="current-mood-emoji">😊</div>
+                        <h5>خوشحال</h5>
+                    {% elif partner_mood.mood == 'sad' %}
+                        <div class="current-mood-emoji">😔</div>
+                        <h5>غمگین</h5>
+                    {% elif partner_mood.mood == 'love' %}
+                        <div class="current-mood-emoji">😍</div>
+                        <h5>عاشق</h5>
+                    {% elif partner_mood.mood == 'angry' %}
+                        <div class="current-mood-emoji">😡</div>
+                        <h5>عصبانی</h5>
+                    {% elif partner_mood.mood == 'neutral' %}
+                        <div class="current-mood-emoji">😐</div>
+                        <h5>معمولی</h5>
+                    {% elif partner_mood.mood == 'tired' %}
+                        <div class="current-mood-emoji">😫</div>
+                        <h5>خسته</h5>
+                    {% elif partner_mood.mood == 'excited' %}
+                        <div class="current-mood-emoji">🤩</div>
+                        <h5>هیجان‌زده</h5>
+                    {% endif %}
+                    
+                    {% if partner_mood.note %}
+                    <div class="mt-3">
+                        <p>{{ partner_mood.note }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% elif profile.partner and not partner_mood %}
+        <div class="card mood-tracker-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-heart"></i> حال و هوای همسر شما</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center py-4">
+                    <div class="mb-3">
+                        <i class="fas fa-heart text-muted fa-3x"></i>
+                    </div>
+                    <h5>{{ profile.partner.user.get_full_name|default:profile.partner.user.username }} هنوز حال و هوای امروز خود را ثبت نکرده است</h5>
+                    <p class="text-muted">به محض ثبت حال و هوا، در اینجا نمایش داده خواهد شد.</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if mood_history %}
+        <div class="card mood-tracker-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history"></i> تاریخچه حال و هوا</h5>
+            </div>
+            <div class="card-body">
+                <div class="mood-history">
+                    {% for mood in mood_history %}
+                    <div class="mood-day">
+                        {% if mood.mood == 'happy' %}
+                            <div class="mood-day-emoji">😊</div>
+                        {% elif mood.mood == 'sad' %}
+                            <div class="mood-day-emoji">😔</div>
+                        {% elif mood.mood == 'love' %}
+                            <div class="mood-day-emoji">😍</div>
+                        {% elif mood.mood == 'angry' %}
+                            <div class="mood-day-emoji">😡</div>
+                        {% elif mood.mood == 'neutral' %}
+                            <div class="mood-day-emoji">😐</div>
+                        {% elif mood.mood == 'tired' %}
+                            <div class="mood-day-emoji">😫</div>
+                        {% elif mood.mood == 'excited' %}
+                            <div class="mood-day-emoji">🤩</div>
+                        {% endif %}
+                        <div class="mood-day-date">{{ mood.date|date:"m/d" }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.mood-option').forEach(function(option) {
+        option.addEventListener('click', function() {
+            // Remove active class from all options
+            document.querySelectorAll('.mood-option').forEach(function(o) {
+                o.classList.remove('active');
+            });
+            
+            // Add active class to clicked option
+            this.classList.add('active');
+        });
+    });
+</script>
+{% endblock %} 

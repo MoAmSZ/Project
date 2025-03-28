@@ -1,0 +1,443 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}{% if edit_mode %}ویرایش ایده قرار{% else %}افزودن ایده قرار{% endif %} | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .budget-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .budget-option:hover {
+        border-color: var(--primary-color);
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+    }
+    
+    .budget-option.active {
+        border-color: var(--primary-color);
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+    }
+    
+    .budget-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .budget-free .budget-icon {
+        color: #198754;
+    }
+    
+    .budget-low .budget-icon {
+        color: #0dcaf0;
+    }
+    
+    .budget-medium .budget-icon {
+        color: #ffc107;
+    }
+    
+    .budget-high .budget-icon {
+        color: #dc3545;
+    }
+    
+    .location-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .location-option:hover {
+        border-color: var(--primary-color);
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+    }
+    
+    .location-option.active {
+        border-color: var(--primary-color);
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+    }
+    
+    .location-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .mood-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .mood-option:hover {
+        border-color: var(--primary-color);
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+    }
+    
+    .mood-option.active {
+        border-color: var(--primary-color);
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+    }
+    
+    .mood-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .mood-energetic .mood-icon {
+        color: #dc3545;
+    }
+    
+    .mood-calm .mood-icon {
+        color: #0d6efd;
+    }
+    
+    .mood-romantic .mood-icon {
+        color: #d63384;
+    }
+    
+    .mood-adventurous .mood-icon {
+        color: #ffc107;
+    }
+    
+    .mood-creative .mood-icon {
+        color: #6f42c1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'date_ideas' %}">ایده‌های قرار</a></li>
+                <li class="breadcrumb-item active">{% if edit_mode %}ویرایش ایده قرار{% else %}افزودن ایده جدید{% endif %}</li>
+            </ol>
+        </nav>
+        <h4 class="mb-3"><i class="fas {% if edit_mode %}fa-edit{% else %}fa-plus-circle{% endif %}"></i> {% if edit_mode %}ویرایش ایده قرار{% else %}افزودن ایده قرار جدید{% endif %}</h4>
+    </div>
+</div>
+
+<div class="form-container">
+    <form method="post"{% if edit_mode %} action="{% url 'edit_date_idea' idea.pk %}"{% endif %}>
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">اطلاعات کلی</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="id_title" class="form-label">عنوان ایده <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="id_title" name="title" required value="{{ form.title.value|default:'' }}">
+                    {% if form.title.errors %}
+                        <div class="text-danger">
+                            {% for error in form.title.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="form-text">
+                        مثال: "پیک‌نیک در پارک"، "شام رمانتیک خانگی"، "بازدید از موزه"
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="id_description" class="form-label">توضیحات <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="id_description" name="description" rows="5" required>{{ form.description.value|default:'' }}</textarea>
+                    {% if form.description.errors %}
+                        <div class="text-danger">
+                            {% for error in form.description.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="form-text">
+                        جزئیات بیشتر در مورد این ایده، چگونگی اجرا، زمان مناسب و سایر نکات مفید
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">مشخصات ایده</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <label class="form-label">بودجه مورد نیاز <span class="text-danger">*</span></label>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="budget-option budget-free" data-value="free">
+                                <div class="budget-icon">
+                                    <i class="fas fa-coins"></i>
+                                </div>
+                                <div class="budget-name">رایگان</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="budget-option budget-low" data-value="low">
+                                <div class="budget-icon">
+                                    <i class="fas fa-coins"></i>
+                                </div>
+                                <div class="budget-name">کم هزینه</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="budget-option budget-medium" data-value="medium">
+                                <div class="budget-icon">
+                                    <i class="fas fa-coins"></i>
+                                </div>
+                                <div class="budget-name">متوسط</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="budget-option budget-high" data-value="high">
+                                <div class="budget-icon">
+                                    <i class="fas fa-coins"></i>
+                                </div>
+                                <div class="budget-name">گران</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="id_budget" name="budget" value="{{ form.budget.value|default:'' }}">
+                    {% if form.budget.errors %}
+                        <div class="text-danger">
+                            {% for error in form.budget.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label">مکان مناسب <span class="text-danger">*</span></label>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="location-option" data-value="indoor">
+                                <div class="location-icon">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                                <div class="location-name">داخل خانه</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="location-option" data-value="outdoor">
+                                <div class="location-icon">
+                                    <i class="fas fa-tree"></i>
+                                </div>
+                                <div class="location-name">بیرون از خانه</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="location-option" data-value="any">
+                                <div class="location-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div class="location-name">هر جایی</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="id_location" name="location" value="{{ form.location.value|default:'' }}">
+                    {% if form.location.errors %}
+                        <div class="text-danger">
+                            {% for error in form.location.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">حال و هوا <span class="text-danger">*</span></label>
+                    <div class="row">
+                        <div class="col-md-4 col-lg-2 mb-3">
+                            <div class="mood-option mood-energetic" data-value="energetic">
+                                <div class="mood-icon">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                                <div class="mood-name">پرانرژی</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-lg-2 mb-3">
+                            <div class="mood-option mood-calm" data-value="calm">
+                                <div class="mood-icon">
+                                    <i class="fas fa-spa"></i>
+                                </div>
+                                <div class="mood-name">آرام</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-lg-2 mb-3">
+                            <div class="mood-option mood-romantic" data-value="romantic">
+                                <div class="mood-icon">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <div class="mood-name">عاشقانه</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-lg-3 mb-3">
+                            <div class="mood-option mood-adventurous" data-value="adventurous">
+                                <div class="mood-icon">
+                                    <i class="fas fa-compass"></i>
+                                </div>
+                                <div class="mood-name">ماجراجویانه</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-lg-3 mb-3">
+                            <div class="mood-option mood-creative" data-value="creative">
+                                <div class="mood-icon">
+                                    <i class="fas fa-palette"></i>
+                                </div>
+                                <div class="mood-name">خلاقانه</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="id_mood" name="mood" value="{{ form.mood.value|default:'' }}">
+                    {% if form.mood.errors %}
+                        <div class="text-danger">
+                            {% for error in form.mood.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between mb-4">
+            <a href="{% if edit_mode %}{% url 'date_idea_detail' idea.pk %}{% else %}{% url 'date_ideas' %}{% endif %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right"></i> انصراف
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> {% if edit_mode %}ذخیره تغییرات{% else %}ذخیره ایده{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-info-circle"></i> راهنما</h5>
+    </div>
+    <div class="card-body">
+        <h6>نکات مفید:</h6>
+        <ul>
+            <li>ایده‌های منحصر به فرد و خلاقانه معمولاً محبوب‌ترین هستند.</li>
+            <li>توضیحات مفصل با جزئیات کافی به دیگران کمک می‌کند تا ایده شما را بهتر درک کنند.</li>
+            <li>می‌توانید ایده‌های رایگان یا کم هزینه را برای روزهای معمولی و ایده‌های گران‌تر را برای مناسبت‌های خاص پیشنهاد دهید.</li>
+        </ul>
+        
+        <h6>انواع بودجه:</h6>
+        <ul>
+            <li><strong>رایگان:</strong> بدون نیاز به هزینه مالی یا با هزینه‌های بسیار جزئی</li>
+            <li><strong>کم هزینه:</strong> هزینه‌های کمتر از یک وعده غذایی معمولی در رستوران</li>
+            <li><strong>متوسط:</strong> در حد هزینه یک شام در رستوران</li>
+            <li><strong>گران:</strong> ایده‌های خاص و لوکس که نیاز به برنامه‌ریزی مالی دارند</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Make sure form fields are visible and accessible
+        const titleField = document.querySelector('#id_title');
+        const descriptionField = document.querySelector('#id_description');
+        const budgetField = document.querySelector('#id_budget');
+        const locationField = document.querySelector('#id_location');
+        const moodField = document.querySelector('#id_mood');
+        
+        // Ensure the fields are properly displayed
+        if (titleField) titleField.style.display = 'block';
+        if (descriptionField) descriptionField.style.display = 'block';
+        
+        // Handle visual selection for budget options
+        document.querySelectorAll('.budget-option').forEach(function(option) {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.budget-option').forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+                if (budgetField) budgetField.value = this.getAttribute('data-value');
+            });
+            
+            // If this is the option matching the form value, mark it as active
+            if (budgetField && budgetField.value && option.getAttribute('data-value') === budgetField.value) {
+                option.classList.add('active');
+            }
+        });
+        
+        // Handle visual selection for location options
+        document.querySelectorAll('.location-option').forEach(function(option) {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.location-option').forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+                if (locationField) locationField.value = this.getAttribute('data-value');
+            });
+            
+            // If this is the option matching the form value, mark it as active
+            if (locationField && locationField.value && option.getAttribute('data-value') === locationField.value) {
+                option.classList.add('active');
+            }
+        });
+        
+        // Handle visual selection for mood options
+        document.querySelectorAll('.mood-option').forEach(function(option) {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.mood-option').forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+                if (moodField) moodField.value = this.getAttribute('data-value');
+            });
+            
+            // If this is the option matching the form value, mark it as active
+            if (moodField && moodField.value && option.getAttribute('data-value') === moodField.value) {
+                option.classList.add('active');
+            }
+        });
+        
+        // Initialize active selections based on initial values
+        if (budgetField && budgetField.value) {
+            const budgetOption = document.querySelector(`.budget-option[data-value="${budgetField.value}"]`);
+            if (budgetOption) budgetOption.classList.add('active');
+        }
+        
+        if (locationField && locationField.value) {
+            const locationOption = document.querySelector(`.location-option[data-value="${locationField.value}"]`);
+            if (locationOption) locationOption.classList.add('active');
+        }
+        
+        if (moodField && moodField.value) {
+            const moodOption = document.querySelector(`.mood-option[data-value="${moodField.value}"]`);
+            if (moodOption) moodOption.classList.add('active');
+        }
+    });
+</script>
+{% endblock %} 

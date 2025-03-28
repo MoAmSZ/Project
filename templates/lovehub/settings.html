@@ -1,0 +1,983 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}تنظیمات | دفترچه پیوند{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* استایل‌های CSS */
+    /* متغیرهای CSS */
+    :root {
+        --primary-color: #ff6b6b;
+        --secondary-color: #4ecdc4;
+        --dark-color: #343a40;
+        --card-bg: #fff;
+        --card-border: rgba(0,0,0,0.1);
+    }
+    
+    /* اصلی */
+    .settings-container {
+        padding-bottom: 3rem;
+    }
+    
+    /* هدر صفحه با گرادیانت */
+    .settings-header {
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .settings-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 0 L100 50 L50 100 L0 50 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+        background-size: 20px;
+        opacity: 0.3;
+    }
+    
+    .settings-header h4 {
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .settings-header p {
+        margin-bottom: 0;
+        opacity: 0.9;
+        max-width: 600px;
+    }
+    
+    /* سایدبار */
+    .settings-sidebar {
+        position: sticky;
+        top: 2rem;
+    }
+    
+    .settings-nav {
+        background-color: var(--card-bg);
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--card-border);
+    }
+    
+    .settings-nav-item {
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--dark-color);
+        position: relative;
+        transition: all 0.3s;
+        border-bottom: 1px solid var(--card-border);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .settings-nav-item:last-child {
+        border-bottom: none;
+    }
+    
+    .settings-nav-item i {
+        font-size: 1.2rem;
+        width: 24px;
+        text-align: center;
+        color: var(--primary-color);
+        transition: all 0.3s;
+    }
+    
+    .settings-nav-item.active {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        color: var(--primary-color);
+        padding-right: 2rem;
+    }
+    
+    .settings-nav-item.active::before {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+    }
+    
+    .settings-nav-item:hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+        color: var(--primary-color);
+    }
+    
+    /* کارت‌های تنظیمات */
+    .settings-card {
+        background-color: var(--card-bg);
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--card-border);
+        transition: all 0.3s ease;
+    }
+    
+    .settings-card:hover {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        transform: translateY(-3px);
+    }
+    
+    .settings-card-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .settings-card-header h5 {
+        margin-bottom: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .settings-card-header h5 i {
+        color: var(--primary-color);
+    }
+    
+    .settings-card-body {
+        padding: 1.5rem;
+    }
+    
+    /* بخش تنظیمات */
+    .settings-section {
+        margin-bottom: 2rem;
+        animation: fadeInUp 0.5s ease forwards;
+        opacity: 0;
+    }
+    
+    .settings-section:nth-child(1) { animation-delay: 0.1s; }
+    .settings-section:nth-child(2) { animation-delay: 0.2s; }
+    .settings-section:nth-child(3) { animation-delay: 0.3s; }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .settings-section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--card-border);
+    }
+    
+    .settings-section-title i {
+        color: var(--primary-color);
+    }
+    
+    /* سایر استایل‌ها */
+    /* ... */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <!-- هدر صفحه -->
+    <div class="settings-header">
+        <h4><i class="fas fa-cog"></i> تنظیمات</h4>
+        <p>در این صفحه می‌توانید تنظیمات حساب کاربری، ظاهر برنامه و سایر موارد را مدیریت کنید.</p>
+    </div>
+
+    <div class="row">
+        <!-- سایدبار -->
+        <div class="col-lg-3">
+            <div class="settings-sidebar">
+                <div class="settings-nav">
+                    <a href="#account" class="settings-nav-item active" data-bs-toggle="tab">
+                        <i class="fas fa-user-circle"></i>
+                        حساب کاربری
+                    </a>
+                    <a href="#notifications" class="settings-nav-item" data-bs-toggle="tab">
+                        <i class="fas fa-bell"></i>
+                        اعلان‌ها
+                    </a>
+                    <a href="#appearance" class="settings-nav-item" data-bs-toggle="tab">
+                        <i class="fas fa-paint-brush"></i>
+                        ظاهر
+                    </a>
+                    <a href="#privacy" class="settings-nav-item" data-bs-toggle="tab">
+                        <i class="fas fa-shield-alt"></i>
+                        حریم خصوصی
+                    </a>
+                    <a href="#relationship" class="settings-nav-item" data-bs-toggle="tab">
+                        <i class="fas fa-heart"></i>
+                        تنظیمات رابطه
+                    </a>
+                    <a href="#widgets" class="settings-nav-item" data-bs-toggle="tab">
+                        <i class="fas fa-th-large"></i>
+                        ویجت‌ها
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- محتوای اصلی -->
+        <div class="col-lg-9">
+            <div class="tab-content">
+                <!-- تنظیمات حساب کاربری -->
+                <div class="tab-pane fade show active" id="account">
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <h5><i class="fas fa-user-circle"></i> تنظیمات حساب کاربری</h5>
+                        </div>
+                        <div class="settings-card-body">
+                            <!-- بخش اطلاعات شخصی -->
+                            <div class="settings-section">
+                                <h6 class="settings-section-title">
+                                    <i class="fas fa-id-card"></i> اطلاعات شخصی
+                                </h6>
+                                <form method="post" action="{% url 'app_settings' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="update_account">
+                                    
+                                    {% if account_form.non_field_errors %}
+                                        <div class="alert alert-danger">
+                                            {% for error in account_form.non_field_errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                {{ account_form.first_name }}
+                                                <label for="{{ account_form.first_name.id_for_label }}">نام</label>
+                                                {% if account_form.first_name.errors %}
+                                                    <div class="text-danger">
+                                                        {% for error in account_form.first_name.errors %}
+                                                            {{ error }}
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                {{ account_form.last_name }}
+                                                <label for="{{ account_form.last_name.id_for_label }}">نام خانوادگی</label>
+                                                {% if account_form.last_name.errors %}
+                                                    <div class="text-danger">
+                                                        {% for error in account_form.last_name.errors %}
+                                                            {{ error }}
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                {{ account_form.email }}
+                                                <label for="{{ account_form.email.id_for_label }}">ایمیل</label>
+                                                {% if account_form.email.errors %}
+                                                    <div class="text-danger">
+                                                        {% for error in account_form.email.errors %}
+                                                            {{ error }}
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                {{ account_form.username }}
+                                                <label for="{{ account_form.username.id_for_label }}">نام کاربری</label>
+                                                {% if account_form.username.errors %}
+                                                    <div class="text-danger">
+                                                        {% for error in account_form.username.errors %}
+                                                            {{ error }}
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-settings">
+                                            <i class="fas fa-save"></i> ذخیره تغییرات
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <hr class="my-4">
+                            
+                            <!-- بخش تغییر رمز عبور -->
+                            <div class="settings-section">
+                                <h6 class="settings-section-title">
+                                    <i class="fas fa-key"></i> تغییر رمز عبور
+                                </h6>
+                                <form method="post" action="{% url 'app_settings' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="change_password">
+                                    
+                                    {% if password_form.non_field_errors %}
+                                        <div class="alert alert-danger">
+                                            {% for error in password_form.non_field_errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <div class="form-floating mb-3">
+                                                {{ password_form.old_password }}
+                                                <label for="{{ password_form.old_password.id_for_label }}">رمز عبور فعلی</label>
+                                                {% if password_form.old_password.errors %}
+                                                    <div class="text-danger">
+                                                        {% for error in password_form.old_password.errors %}
+                                                            {{ error }}
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                {{ password_form.new_password1 }}
+                                                <label for="{{ password_form.new_password1.id_for_label }}">رمز عبور جدید</label>
+                                                {% if password_form.new_password1.errors %}
+                                                    <div class="text-danger">
+                                                        {% for error in password_form.new_password1.errors %}
+                                                            {{ error }}
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                {{ password_form.new_password2 }}
+                                                <label for="{{ password_form.new_password2.id_for_label }}">تکرار رمز عبور جدید</label>
+                                                {% if password_form.new_password2.errors %}
+                                                    <div class="text-danger">
+                                                        {% for error in password_form.new_password2.errors %}
+                                                            {{ error }}
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-settings">
+                                            <i class="fas fa-key"></i> تغییر رمز عبور
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- تنظیمات اعلان‌ها -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <h5><i class="fas fa-bell"></i> تنظیمات اعلان‌ها</h5>
+                        </div>
+                        <div class="settings-card-body">
+                            <form method="post" action="{% url 'app_settings' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="update_notifications">
+                                
+                                <div class="settings-section">
+                                    <h6 class="settings-section-title">
+                                        <i class="fas fa-toggle-on"></i> وضعیت اعلان‌ها
+                                    </h6>
+                                    
+                                    <div class="form-switch mb-4">
+                                        {{ notification_form.enabled }}
+                                        <label class="form-check-label" for="{{ notification_form.enabled.id_for_label }}">
+                                            فعال‌سازی اعلان‌ها
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-section">
+                                    <h6 class="settings-section-title">
+                                        <i class="fas fa-list-check"></i> انواع اعلان‌ها
+                                    </h6>
+                                    
+                                    <div class="notification-options">
+                                        <div class="form-check d-flex align-items-center mb-3">
+                                            {{ notification_form.notify_events }}
+                                            <label class="form-check-label" for="{{ notification_form.notify_events.id_for_label }}">
+                                                <span class="notification-icon"><i class="fas fa-calendar-check"></i></span>
+                                                <span class="notification-text">
+                                                    <strong>رویدادهای نزدیک</strong>
+                                                    <span class="text-muted d-block small">دریافت اعلان برای رویدادهای نزدیک و مناسبت‌ها</span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="form-check d-flex align-items-center mb-3">
+                                            {{ notification_form.notify_moments }}
+                                            <label class="form-check-label" for="{{ notification_form.notify_moments.id_for_label }}">
+                                                <span class="notification-icon"><i class="fas fa-heart"></i></span>
+                                                <span class="notification-text">
+                                                    <strong>لحظات جدید</strong>
+                                                    <span class="text-muted d-block small">دریافت اعلان برای لحظات ثبت شده جدید</span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="form-check d-flex align-items-center mb-3">
+                                            {{ notification_form.notify_wishes }}
+                                            <label class="form-check-label" for="{{ notification_form.notify_wishes.id_for_label }}">
+                                                <span class="notification-icon"><i class="fas fa-star"></i></span>
+                                                <span class="notification-text">
+                                                    <strong>آرزوهای جدید</strong>
+                                                    <span class="text-muted d-block small">دریافت اعلان برای آرزوهای ثبت شده جدید</span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="form-check d-flex align-items-center mb-3">
+                                            {{ notification_form.notify_comments }}
+                                            <label class="form-check-label" for="{{ notification_form.notify_comments.id_for_label }}">
+                                                <span class="notification-icon"><i class="fas fa-comment"></i></span>
+                                                <span class="notification-text">
+                                                    <strong>دیدگاه‌ها</strong>
+                                                    <span class="text-muted d-block small">دریافت اعلان برای دیدگاه‌های جدید</span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="form-check d-flex align-items-center mb-3">
+                                            {{ notification_form.notify_daily_messages }}
+                                            <label class="form-check-label" for="{{ notification_form.notify_daily_messages.id_for_label }}">
+                                                <span class="notification-icon"><i class="fas fa-comment-dots"></i></span>
+                                                <span class="notification-text">
+                                                    <strong>پیام‌های روزانه</strong>
+                                                    <span class="text-muted d-block small">دریافت اعلان برای پیام‌های روزانه جدید</span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-section">
+                                    <h6 class="settings-section-title">
+                                        <i class="fas fa-envelope"></i> روش دریافت اعلان
+                                    </h6>
+                                    
+                                    <div class="form-floating mb-3">
+                                        {{ notification_form.notification_method }}
+                                        <label for="{{ notification_form.notification_method.id_for_label }}">روش اعلان</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-settings">
+                                        <i class="fas fa-save"></i> ذخیره تنظیمات
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- تنظیمات ظاهری -->
+                <div class="tab-pane fade" id="appearance">
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <h5><i class="fas fa-paint-brush"></i> تنظیمات ظاهری</h5>
+                        </div>
+                        <div class="settings-card-body">
+                            <form method="post" action="{% url 'app_settings' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="update_appearance">
+                                
+                                <div class="settings-section">
+                                    <h6 class="settings-section-title">
+                                        <i class="fas fa-palette"></i> تم برنامه
+                                    </h6>
+                                    
+                                    <div class="theme-options mb-4">
+                                        <div class="row g-3">
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="theme" id="theme1" value="default" {% if appearance_form.theme.value == 'default' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="theme1">
+                                                        <div class="theme-option-preview" style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </div>
+                                                        <span class="theme-option-title">پیش‌فرض</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="theme" id="theme2" value="dark" {% if appearance_form.theme.value == 'dark' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="theme2">
+                                                        <div class="theme-option-preview" style="background: linear-gradient(135deg, #9775fa, #b197fc);">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </div>
+                                                        <span class="theme-option-title">تاریک</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="theme" id="theme3" value="light" {% if appearance_form.theme.value == 'light' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="theme3">
+                                                        <div class="theme-option-preview" style="background: linear-gradient(135deg, #339af0, #74c0fc);">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </div>
+                                                        <span class="theme-option-title">روشن</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="theme" id="theme4" value="nature" {% if appearance_form.theme.value == 'nature' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="theme4">
+                                                        <div class="theme-option-preview" style="background: linear-gradient(135deg, #51cf66, #69db7c);">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </div>
+                                                        <span class="theme-option-title">طبیعت</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="theme" id="theme5" value="romance" {% if appearance_form.theme.value == 'romance' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="theme5">
+                                                        <div class="theme-option-preview" style="background: linear-gradient(135deg, #f06595, #f783ac);">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </div>
+                                                        <span class="theme-option-title">رمانتیک</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="theme" id="theme6" value="royal" {% if appearance_form.theme.value == 'royal' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="theme6">
+                                                        <div class="theme-option-preview" style="background: linear-gradient(135deg, #7950f2, #9775fa);">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </div>
+                                                        <span class="theme-option-title">سلطنتی</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="theme" id="theme7" value="ocean" {% if appearance_form.theme.value == 'ocean' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="theme7">
+                                                        <div class="theme-option-preview" style="background: linear-gradient(135deg, #1c7ed6, #339af0);">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </div>
+                                                        <span class="theme-option-title">اقیانوس</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="theme" id="theme8" value="sunset" {% if appearance_form.theme.value == 'sunset' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="theme8">
+                                                        <div class="theme-option-preview" style="background: linear-gradient(135deg, #f76707, #ff922b);">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </div>
+                                                        <span class="theme-option-title">غروب آفتاب</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-section">
+                                    <h6 class="settings-section-title">
+                                        <i class="fas fa-swatchbook"></i> پالت رنگی
+                                    </h6>
+                                    
+                                    <div class="theme-options mb-4">
+                                        <div class="row g-3">
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="color_palette" id="palette1" value="default" {% if appearance_form.color_palette.value == 'default' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="palette1">
+                                                        <div class="theme-option-preview">
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);"></span>
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #4ecdc4, #26de81);"></span>
+                                                        </div>
+                                                        <span class="theme-option-title">پیش‌فرض</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="color_palette" id="palette2" value="purple" {% if appearance_form.color_palette.value == 'purple' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="palette2">
+                                                        <div class="theme-option-preview">
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #9775fa, #b197fc);"></span>
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #cc5de8, #da77f2);"></span>
+                                                        </div>
+                                                        <span class="theme-option-title">بنفش</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="color_palette" id="palette3" value="blue" {% if appearance_form.color_palette.value == 'blue' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="palette3">
+                                                        <div class="theme-option-preview">
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #339af0, #74c0fc);"></span>
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #228be6, #4dabf7);"></span>
+                                                        </div>
+                                                        <span class="theme-option-title">آبی</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="color_palette" id="palette4" value="green" {% if appearance_form.color_palette.value == 'green' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="palette4">
+                                                        <div class="theme-option-preview">
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #51cf66, #69db7c);"></span>
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #40c057, #51cf66);"></span>
+                                                        </div>
+                                                        <span class="theme-option-title">سبز</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="color_palette" id="palette5" value="orange" {% if appearance_form.color_palette.value == 'orange' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="palette5">
+                                                        <div class="theme-option-preview">
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #ff922b, #ffa94d);"></span>
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #f76707, #ff922b);"></span>
+                                                        </div>
+                                                        <span class="theme-option-title">نارنجی</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="color_palette" id="palette6" value="red" {% if appearance_form.color_palette.value == 'red' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="palette6">
+                                                        <div class="theme-option-preview">
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #fa5252, #ff6b6b);"></span>
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #e03131, #fa5252);"></span>
+                                                        </div>
+                                                        <span class="theme-option-title">قرمز</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="color_palette" id="palette7" value="pink" {% if appearance_form.color_palette.value == 'pink' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="palette7">
+                                                        <div class="theme-option-preview">
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #f06595, #f783ac);"></span>
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #e64980, #f06595);"></span>
+                                                        </div>
+                                                        <span class="theme-option-title">صورتی</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="theme-option">
+                                                    <input class="theme-option-input" type="radio" name="color_palette" id="palette8" value="teal" {% if appearance_form.color_palette.value == 'teal' %}checked{% endif %}>
+                                                    <label class="theme-option-label" for="palette8">
+                                                        <div class="theme-option-preview">
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #20c997, #38d9a9);"></span>
+                                                            <span class="theme-color" style="background: linear-gradient(135deg, #12b886, #20c997);"></span>
+                                                        </div>
+                                                        <span class="theme-option-title">فیروزه‌ای</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-section">
+                                    <h6 class="settings-section-title">
+                                        <i class="fas fa-text-height"></i> اندازه فونت
+                                    </h6>
+                                    
+                                    <div class="form-floating mb-3">
+                                        {{ appearance_form.font_size }}
+                                        <label for="{{ appearance_form.font_size.id_for_label }}">اندازه فونت</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-settings">
+                                        <i class="fas fa-save"></i> ذخیره تنظیمات
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- تنظیمات حریم خصوصی -->
+                <div class="tab-pane fade" id="privacy">
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <h5><i class="fas fa-shield-alt"></i> تنظیمات حریم خصوصی</h5>
+                        </div>
+                        <div class="settings-card-body">
+                            <form method="post" action="{% url 'app_settings' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="update_privacy">
+                                
+                                <div class="settings-section">
+                                    <h6 class="settings-section-title">
+                                        <i class="fas fa-user-shield"></i> حفاظت از داده‌ها
+                                    </h6>
+                                    
+                                    <div class="privacy-options">
+                                        <div class="privacy-option mb-3">
+                                            <div class="form-switch d-flex align-items-center">
+                                                {{ privacy_form.activity_tracking }}
+                                                <label class="form-check-label ms-2" for="{{ privacy_form.activity_tracking.id_for_label }}">
+                                                    <span class="d-block fw-bold">ردیابی فعالیت‌ها</span>
+                                                    <span class="text-muted small">پیگیری فعالیت‌های شما در برنامه برای نمایش در تاریخچه فعالیت</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="privacy-option mb-3">
+                                            <div class="form-switch d-flex align-items-center">
+                                                {{ privacy_form.data_sharing }}
+                                                <label class="form-check-label ms-2" for="{{ privacy_form.data_sharing.id_for_label }}">
+                                                    <span class="d-block fw-bold">اشتراک‌گذاری داده‌ها</span>
+                                                    <span class="text-muted small">اشتراک‌گذاری اطلاعات با همسرتان</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-section">
+                                    <h6 class="settings-section-title">
+                                        <i class="fas fa-database"></i> مدیریت داده‌ها
+                                    </h6>
+                                    
+                                    <p class="text-muted mb-3">شما می‌توانید داده‌های خود را دانلود یا حذف کنید.</p>
+                                    
+                                    <div class="d-flex gap-3 mb-4">
+                                        <a href="{% url 'download_data' %}" class="btn btn-outline-settings">
+                                            <i class="fas fa-download me-1"></i> دانلود داده‌ها
+                                        </a>
+                                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteDataModal">
+                                            <i class="fas fa-trash-alt me-1"></i> حذف داده‌ها
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-settings">
+                                        <i class="fas fa-save"></i> ذخیره تنظیمات
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- تنظیمات رابطه -->
+                <div class="tab-pane fade" id="relationship">
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <h5><i class="fas fa-heart"></i> تنظیمات رابطه</h5>
+                        </div>
+                        <div class="settings-card-body">
+                            <form method="post" action="{% url 'app_settings' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="update_relationship">
+                                
+                                <div class="settings-section">
+                                    <h6 class="settings-section-title">
+                                        <i class="fas fa-calendar-heart"></i> اطلاعات رابطه
+                                    </h6>
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                {{ relationship_form.anniversary_date }}
+                                                <label for="{{ relationship_form.anniversary_date.id_for_label }}">تاریخ شروع رابطه</label>
+                                                <div class="form-text">تاریخی که رابطه شما شروع شده است</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                {{ relationship_form.relationship_status }}
+                                                <label for="{{ relationship_form.relationship_status.id_for_label }}">وضعیت رابطه</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-section">
+                                    <h6 class="settings-section-title">
+                                        <i class="fas fa-user-plus"></i> ارتباط با همسر
+                                    </h6>
+                                    
+                                    <div class="partner-connection mb-4">
+                                        <div class="form-floating mb-3">
+                                            {{ relationship_form.partner_email }}
+                                            <label for="{{ relationship_form.partner_email.id_for_label }}">ایمیل همسر</label>
+                                        </div>
+                                        
+                                        {% if user.profile.partner %}
+                                        <div class="alert alert-success">
+                                            <i class="fas fa-check-circle me-2"></i> شما در حال حاضر با <strong>{{ user.profile.partner.get_full_name }}</strong> در ارتباط هستید.
+                                        </div>
+                                        {% else %}
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i> برای ارتباط با همسرتان، ایمیل ایشان را وارد کنید.
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-settings">
+                                        <i class="fas fa-save"></i> ذخیره تنظیمات
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- تنظیمات ویجت‌ها -->
+                <div class="tab-pane fade" id="widgets">
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <h5><i class="fas fa-th-large"></i> تنظیمات ویجت‌ها</h5>
+                        </div>
+                        <div class="settings-card-body">
+                            <form method="post" action="{% url 'app_settings' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="update_widgets">
+                                
+                                <div class="settings-section">
+                                    <h6 class="settings-section-title">
+                                        <i class="fas fa-puzzle-piece"></i> شخصی‌سازی داشبورد
+                                    </h6>
+                                    <p class="text-muted mb-4">ویجت‌های داشبورد خود را شخصی‌سازی کنید.</p>
+                                    
+                                    <div class="d-flex justify-content-center">
+                                        <p>لیست ویجت‌ها در اینجا قرار می‌گیرد</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-settings">
+                                        <i class="fas fa-save"></i> ذخیره تنظیمات
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال تأیید حذف داده‌ها -->
+<div class="modal fade" id="deleteDataModal" tabindex="-1" aria-labelledby="deleteDataModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteDataModalLabel">تأیید حذف داده‌ها</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i> هشدار: این عملیات غیرقابل بازگشت است!
+                </div>
+                <p>آیا مطمئن هستید که می‌خواهید تمام داده‌های خود را حذف کنید؟</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <a href="{% url 'delete_data' %}" class="btn btn-danger">
+                    <i class="fas fa-trash-alt me-1"></i> حذف داده‌ها
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // فعال کردن تب‌ها به صورت دستی
+    $(document).ready(function() {
+        // اطمینان از فعال بودن تب اول در بارگذاری صفحه
+        $('#account').addClass('show active');
+        
+        $('.settings-nav-item').on('click', function(e) {
+            e.preventDefault();
+            
+            // حذف کلاس active از همه آیتم‌ها
+            $('.settings-nav-item').removeClass('active');
+            // اضافه کردن کلاس active به آیتم کلیک شده
+            $(this).addClass('active');
+            
+            // نمایش محتوای تب مربوطه
+            var target = $(this).attr('href');
+            $('.tab-pane').removeClass('show active');
+            $(target).addClass('show active');
+            
+            // اسکرول به بالای محتوای تب در موبایل
+            if(window.innerWidth < 992) {
+                $('html, body').animate({
+                    scrollTop: $(target).offset().top - 20
+                }, 200);
+            }
+        });
+        
+        // بررسی هش URL و فعال کردن تب مربوطه
+        if(window.location.hash) {
+            var hash = window.location.hash;
+            $('.settings-nav-item[href="' + hash + '"]').trigger('click');
+        }
+    });
+</script>
+{% endblock %} 

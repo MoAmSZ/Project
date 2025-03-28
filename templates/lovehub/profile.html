@@ -1,0 +1,802 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}پروفایل | دفترچه پیوند{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Background with gradient overlay */
+    .profile-bg {
+        position: relative;
+        background-color: var(--primary-color);
+        background-image: url('https://images.unsplash.com/photo-1518199266791-5375a83190b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80');
+        background-size: cover;
+        background-position: center;
+        border-radius: 20px;
+        height: 250px;
+        overflow: hidden;
+        margin-bottom: 8rem;
+    }
+    
+    .profile-bg::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, var(--primary-color) 0%, rgba(255,107,136,0.8) 100%);
+        opacity: 0.85;
+    }
+    
+    /* Profile card floating on the background */
+    .profile-card {
+        position: relative;
+        margin-top: -100px;
+        background-color: var(--card-bg);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 0;
+        overflow: visible;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .profile-card-header {
+        padding: 2rem;
+        padding-top: 6rem;
+        text-align: center;
+        position: relative;
+    }
+    
+    .profile-avatar-wrapper {
+        position: absolute;
+        width: 160px;
+        height: 160px;
+        top: -120px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+    }
+    
+    .profile-avatar {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        border: 5px solid white;
+        object-fit: cover;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.5s;
+        background-color: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 100;
+    }
+    
+    .profile-avatar:hover {
+        transform: scale(1.05);
+    }
+    
+    .profile-name {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .profile-bio {
+        color: #6c757d;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+    
+    .profile-email {
+        display: inline-flex;
+        align-items: center;
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        color: var(--primary-color);
+        font-weight: 500;
+        margin-bottom: 1rem;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    }
+    
+    .profile-email i {
+        margin-left: 0.5rem;
+    }
+    
+    .profile-edit-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 10;
+    }
+    
+    /* Stats cards */
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background-color: var(--card-bg);
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--card-border);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        background: linear-gradient(45deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    /* Tabs styling */
+    .profile-tabs {
+        display: flex;
+        border-bottom: 1px solid var(--card-border);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .profile-tab-link {
+        padding: 1rem 1.5rem;
+        white-space: nowrap;
+        color: #6c757d;
+        text-decoration: none;
+        position: relative;
+        transition: color 0.3s;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .profile-tab-link.active {
+        color: var(--primary-color);
+    }
+    
+    .profile-tab-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 10%;
+        right: 10%;
+        height: 3px;
+        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        border-radius: 3px 3px 0 0;
+        transform-origin: bottom center;
+        animation: tab-indicator 0.3s forwards;
+    }
+    
+    @keyframes tab-indicator {
+        from {
+            transform: scaleX(0);
+        }
+        to {
+            transform: scaleX(1);
+        }
+    }
+    
+    /* Activity timeline */
+    .activity-timeline {
+        position: relative;
+        padding-right: 30px;
+    }
+    
+    .activity-timeline::before {
+        content: '';
+        position: absolute;
+        right: 10px;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background: linear-gradient(to bottom, var(--primary-color), rgba(var(--bs-primary-rgb), 0.1));
+    }
+    
+    .activity-item {
+        position: relative;
+        padding-bottom: 2rem;
+        margin-bottom: 0;
+        animation: fade-in 0.5s forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    
+    .activity-item:nth-child(1) { animation-delay: 0.1s; }
+    .activity-item:nth-child(2) { animation-delay: 0.2s; }
+    .activity-item:nth-child(3) { animation-delay: 0.3s; }
+    .activity-item:nth-child(4) { animation-delay: 0.4s; }
+    .activity-item:nth-child(5) { animation-delay: 0.5s; }
+    
+    @keyframes fade-in {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .activity-item::before {
+        content: '';
+        position: absolute;
+        top: 6px;
+        right: -30px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: white;
+        border: 3px solid var(--primary-color);
+        z-index: 1;
+    }
+    
+    .activity-date {
+        display: inline-block;
+        font-size: 0.8rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .activity-content {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        border: 1px solid var(--card-border);
+    }
+    
+    .activity-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--dark-color);
+    }
+    
+    /* Info sections */
+    .info-section {
+        background-color: var(--card-bg);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--card-border);
+    }
+    
+    .info-section-title {
+        font-weight: 600;
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--card-border);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .info-section-title i {
+        color: var(--primary-color);
+    }
+    
+    .info-item {
+        margin-bottom: 1.2rem;
+    }
+    
+    .info-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 0.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .info-label i {
+        color: var(--primary-color);
+    }
+    
+    .info-value {
+        font-weight: 500;
+        color: var(--dark-color);
+    }
+    
+    /* Interests and tags */
+    .interests-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .interest-tag {
+        font-size: 0.85rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 3px 8px rgba(var(--bs-primary-rgb), 0.3);
+        transition: transform 0.3s;
+    }
+    
+    .interest-tag:hover {
+        transform: translateY(-3px);
+    }
+    
+    /* Empty state styles */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+    
+    .empty-state-icon {
+        font-size: 3rem;
+        color: #ccc;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state-text {
+        font-size: 1.2rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+    
+    .empty-state-subtext {
+        color: #adb5bd;
+    }
+    
+    /* Additional animations */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .profile-bg {
+            height: 180px;
+            border-radius: 0 0 20px 20px;
+            margin-top: -1rem;
+            margin-bottom: 6rem;
+        }
+        
+        .profile-card {
+            margin-top: -80px;
+        }
+        
+        .profile-avatar-wrapper {
+            width: 120px;
+            height: 120px;
+            top: -100px;
+        }
+        
+        .profile-card-header {
+            padding-top: 4.5rem;
+        }
+        
+        .profile-name {
+            font-size: 1.5rem;
+        }
+        
+        .stats-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .stat-card {
+            padding: 1rem;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+        }
+        
+        .profile-tab-link {
+            padding: 0.8rem 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Background and floating profile card -->
+<div class="profile-bg"></div>
+
+<div class="container">
+    <!-- Profile card -->
+    <div class="card profile-card mb-4">
+        <div class="profile-avatar-wrapper">
+            {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" alt="{{ user.first_name }}" class="profile-avatar">
+            {% else %}
+                <div class="profile-avatar">
+                    <i class="fas fa-user fa-4x text-muted"></i>
+                </div>
+            {% endif %}
+        </div>
+        
+        <a href="{% url 'edit_profile' %}" class="btn btn-light btn-sm rounded-circle profile-edit-btn">
+            <i class="fas fa-pencil-alt"></i>
+        </a>
+        
+        <div class="profile-card-header">
+            <h1 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h1>
+            <p class="profile-bio">{{ user.profile.bio|default:"بیوگرافی تنظیم نشده است." }}</p>
+            
+            {% if user.email %}
+            <div class="profile-email">
+                <i class="fas fa-envelope"></i>
+                {{ user.email }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Stats cards -->
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-camera"></i>
+            </div>
+            <div class="stat-value">{{ moments_count }}</div>
+            <div class="stat-label">لحظه‌های ثبت شده</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-value">{{ events_count }}</div>
+            <div class="stat-label">رویدادها</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-value">{{ wishes_count }}</div>
+            <div class="stat-label">آرزوهای ثبت شده</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-heart"></i>
+            </div>
+            <div class="stat-value">{{ relationship_days }}</div>
+            <div class="stat-label">روز رابطه</div>
+        </div>
+    </div>
+    
+    <!-- Navigation tabs -->
+    <div class="card mb-4">
+        <div class="profile-tabs">
+            <a href="#activity" class="profile-tab-link active" data-bs-toggle="tab">
+                <i class="fas fa-history"></i> فعالیت‌ها
+            </a>
+            <a href="#info" class="profile-tab-link" data-bs-toggle="tab">
+                <i class="fas fa-info-circle"></i> اطلاعات شخصی
+            </a>
+            <a href="#contact" class="profile-tab-link" data-bs-toggle="tab">
+                <i class="fas fa-address-card"></i> اطلاعات تماس
+            </a>
+            <a href="#preferences" class="profile-tab-link" data-bs-toggle="tab">
+                <i class="fas fa-heart"></i> علایق و سلیقه‌ها
+            </a>
+        </div>
+        
+        <div class="card-body">
+            <div class="tab-content">
+                <!-- Activity Tab -->
+                <div class="tab-pane fade show active" id="activity">
+                    {% if activities %}
+                        <div class="activity-timeline">
+                            {% for activity in activities %}
+                                <div class="activity-item">
+                                    <div class="activity-date">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ activity.created_at|date:"Y/m/d" }} - {{ activity.created_at|time:"H:i" }}
+                                    </div>
+                                    <div class="activity-content">
+                                        <h6 class="activity-title">{{ activity.action }}</h6>
+                                        <p class="mb-0">{{ activity.description }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <h5 class="empty-state-text">هنوز فعالیتی ثبت نشده است</h5>
+                            <p class="empty-state-subtext">فعالیت‌های شما در این بخش نمایش داده خواهد شد.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Personal Info Tab -->
+                <div class="tab-pane fade" id="info">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-section">
+                                <h5 class="info-section-title">
+                                    <i class="fas fa-user-circle"></i>
+                                    اطلاعات شخصی
+                                </h5>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-id-card"></i> نام و نام خانوادگی
+                                    </div>
+                                    <div class="info-value">{{ user.first_name }} {{ user.last_name }}</div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-user"></i> نام کاربری
+                                    </div>
+                                    <div class="info-value">{{ user.username }}</div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-birthday-cake"></i> تاریخ تولد
+                                    </div>
+                                    <div class="info-value">{{ user.profile.birth_date|date:"Y/m/d"|default:"تنظیم نشده" }}</div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-heart"></i> تاریخ شروع رابطه
+                                    </div>
+                                    <div class="info-value">{{ user.profile.relationship_start_date|date:"Y/m/d"|default:"تنظیم نشده" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="info-section">
+                                <h5 class="info-section-title">
+                                    <i class="fas fa-chart-line"></i>
+                                    آمار و ارقام
+                                </h5>
+                                
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="info-item">
+                                            <div class="info-label">
+                                                <i class="fas fa-camera"></i> لحظات
+                                            </div>
+                                            <div class="info-value">{{ moments_count }} مورد</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-6">
+                                        <div class="info-item">
+                                            <div class="info-label">
+                                                <i class="fas fa-calendar"></i> رویدادها
+                                            </div>
+                                            <div class="info-value">{{ events_count }} مورد</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-6">
+                                        <div class="info-item">
+                                            <div class="info-label">
+                                                <i class="fas fa-star"></i> آرزوها
+                                            </div>
+                                            <div class="info-value">{{ wishes_count }} مورد</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-6">
+                                        <div class="info-item">
+                                            <div class="info-label">
+                                                <i class="fas fa-heart"></i> روزهای رابطه
+                                            </div>
+                                            <div class="info-value">{{ relationship_days }} روز</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contact Info Tab -->
+                <div class="tab-pane fade" id="contact">
+                    <div class="info-section">
+                        <h5 class="info-section-title">
+                            <i class="fas fa-address-book"></i>
+                            اطلاعات تماس
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-envelope"></i> ایمیل
+                                    </div>
+                                    <div class="info-value">{{ user.email|default:"تنظیم نشده" }}</div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-phone"></i> شماره تماس
+                                    </div>
+                                    <div class="info-value">{{ user.profile.phone|default:"تنظیم نشده" }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-map-marker-alt"></i> آدرس
+                                    </div>
+                                    <div class="info-value">{{ user.profile.address|default:"تنظیم نشده" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Preferences Tab -->
+                <div class="tab-pane fade" id="preferences">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-section">
+                                <h5 class="info-section-title">
+                                    <i class="fas fa-heart"></i>
+                                    علایق و سلیقه‌ها
+                                </h5>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-thumbs-up"></i> علاقه‌مندی‌ها
+                                    </div>
+                                    <div class="interests-list">
+                                        {% if user.profile.interests %}
+                                            {% for interest in user.profile.interests.split %}
+                                                <span class="interest-tag">
+                                                    <i class="fas fa-tag"></i>
+                                                    {{ interest }}
+                                                </span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <p class="text-muted">هنوز علاقه‌مندی ثبت نشده است.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-utensils"></i> غذای مورد علاقه
+                                    </div>
+                                    <div class="info-value">{{ user.profile.favorite_food|default:"تنظیم نشده" }}</div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-palette"></i> رنگ مورد علاقه
+                                    </div>
+                                    <div class="info-value">{{ user.profile.favorite_color|default:"تنظیم نشده" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="info-section">
+                                <h5 class="info-section-title">
+                                    <i class="fas fa-cog"></i>
+                                    تنظیمات
+                                </h5>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-paint-brush"></i> حالت تم
+                                    </div>
+                                    <div class="info-value">{{ user.theme.get_theme_display }}</div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-language"></i> زبان
+                                    </div>
+                                    <div class="info-value">فارسی</div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-bell"></i> اعلان‌ها
+                                    </div>
+                                    <div class="info-value">{% if user.profile.notifications_enabled %}فعال{% else %}غیرفعال{% endif %}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Tab navigation with history
+    document.querySelectorAll('.profile-tab-link').forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.profile-tab-link').forEach(t => {
+                t.classList.remove('active');
+            });
+            
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            // Hide all tab panes
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            
+            // Show the target tab pane
+            const targetPane = document.getElementById(targetId);
+            targetPane.classList.add('show', 'active');
+            
+            // Update URL hash for direct linking
+            history.pushState(null, null, `#${targetId}`);
+        });
+    });
+    
+    // Check for hash in URL to activate correct tab on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const hash = window.location.hash.substring(1);
+        if (hash) {
+            const tabLink = document.querySelector(`.profile-tab-link[href="#${hash}"]`);
+            if (tabLink) {
+                tabLink.click();
+            }
+        }
+    });
+</script>
+{% endblock %} 

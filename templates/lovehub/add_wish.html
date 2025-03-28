@@ -1,0 +1,235 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}{% if edit_mode %}ویرایش آرزو{% else %}افزودن آرزو{% endif %} | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #ff7eb3 0%, #7952b3 100%);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        color: white;
+    }
+    
+    .page-header .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 15px;
+    }
+    
+    .page-header .breadcrumb-item,
+    .page-header .breadcrumb-item a {
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .page-header .breadcrumb-item.active {
+        color: white;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        max-width: 80%;
+    }
+    
+    .form-card, .guide-card {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 25px;
+        overflow: hidden;
+    }
+    
+    .form-card .card-header, .guide-card .card-header {
+        background-color: #f8f9fa;
+        border-bottom: none;
+        padding: 20px;
+    }
+    
+    .form-control {
+        border-radius: 8px;
+        padding: 12px;
+        border: 1px solid #e0e0e0;
+        transition: all 0.3s;
+    }
+    
+    .form-control:focus {
+        border-color: #7952b3;
+        box-shadow: 0 0 0 0.25rem rgba(121, 82, 179, 0.25);
+    }
+    
+    .form-check-input:checked {
+        background-color: #ff7eb3;
+        border-color: #ff7eb3;
+    }
+    
+    .btn-wish-submit {
+        background: linear-gradient(135deg, #ff7eb3 0%, #7952b3 100%);
+        border: none;
+        border-radius: 50px;
+        padding: 12px 30px;
+        font-weight: 600;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+    
+    .btn-wish-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    
+    .btn-wish-cancel {
+        border-radius: 50px;
+        padding: 12px 25px;
+        font-weight: 600;
+    }
+    
+    .guide-list li {
+        margin-bottom: 10px;
+        position: relative;
+        padding-right: 20px;
+    }
+    
+    .guide-list li:before {
+        content: '✨';
+        position: absolute;
+        right: 0;
+        color: #ff7eb3;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">خانه</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'wishes_list' %}">آرزوها</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{% if edit_mode %}ویرایش آرزو{% else %}افزودن آرزو{% endif %}</li>
+        </ol>
+    </nav>
+    <div>
+        <h1><i class="fas {% if edit_mode %}fa-edit{% else %}fa-star{% endif %} me-2"></i> {% if edit_mode %}ویرایش آرزو{% else %}ثبت آرزوی جدید{% endif %}</h1>
+        <p>{% if edit_mode %}اصلاح اطلاعات آرزو{% else %}ثبت یک آرزوی جدید در کپسول آرزوهای مشترک{% endif %}</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card form-card" data-aos="fade-up" data-aos-delay="100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas {% if edit_mode %}fa-edit{% else %}fa-star{% endif %} me-2"></i> اطلاعات آرزو</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post"{% if edit_mode %} action="{% url 'edit_wish' wish.pk %}"{% endif %}>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <label for="id_title" class="form-label fw-bold">عنوان آرزو <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="id_title" name="title" required value="{{ form.title.value|default:'' }}">
+                        {% if form.title.errors %}
+                            <div class="text-danger mt-2">
+                                {% for error in form.title.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text mt-2">
+                            مثال: "سفر به شمال"، "خرید یک حلقه"، "رفتن به رستوران مورد علاقه"
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="id_description" class="form-label fw-bold">توضیحات (اختیاری)</label>
+                        <textarea class="form-control" id="id_description" name="description" rows="5">{{ form.description.value|default:'' }}</textarea>
+                        {% if form.description.errors %}
+                            <div class="text-danger mt-2">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text mt-2">
+                            جزئیات بیشتر در مورد این آرزو را اینجا بنویسید
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4 form-check">
+                        <input type="checkbox" class="form-check-input" id="id_is_important" name="is_important" {% if form.is_important.value %}checked{% endif %}>
+                        <label class="form-check-label" for="id_is_important">
+                            <span class="text-danger"><i class="fas fa-heart me-1"></i></span> این آرزو برایم مهم است
+                        </label>
+                        <div class="form-text mt-2">
+                            آرزوهای مهم در لیست با نشان قلب نمایش داده می‌شوند
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-5">
+                        <a href="{% url 'wishes_list' %}" class="btn btn-outline-secondary btn-wish-cancel">
+                            <i class="fas fa-arrow-right me-1"></i> انصراف
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-wish-submit">
+                            <i class="fas fa-save me-1"></i> {% if edit_mode %}ذخیره تغییرات{% else %}ثبت آرزو{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card guide-card" data-aos="fade-up" data-aos-delay="200">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> راهنما</h5>
+            </div>
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3">چه چیزهایی می‌توانم به عنوان آرزو اضافه کنم؟</h6>
+                <ul class="guide-list ps-0">
+                    <li class="ps-4">مکان‌هایی که دوست دارید با هم بروید (سفر، رستوران، سینما، ...)</li>
+                    <li class="ps-4">تجربه‌هایی که می‌خواهید با هم داشته باشید (یادگیری یک مهارت، انجام یک فعالیت، ...)</li>
+                    <li class="ps-4">هدایایی که دوست دارید به یکدیگر بدهید</li>
+                    <li class="ps-4">ایده‌های رمانتیک برای گذراندن اوقات با یکدیگر</li>
+                </ul>
+                
+                <h6 class="fw-bold mb-3 mt-4">چگونه می‌توانم آرزوها را مدیریت کنم؟</h6>
+                <p>در صفحه لیست آرزوها، می‌توانید:</p>
+                <ul class="guide-list ps-0">
+                    <li class="ps-4">با کلیک روی دایره کنار هر آرزو، آن را به عنوان انجام شده علامت بزنید</li>
+                    <li class="ps-4">آرزوها را بر اساس وضعیت (انجام شده/نشده) فیلتر کنید</li>
+                    <li class="ps-4">آرزوها را بر اساس تاریخ یا وضعیت مرتب کنید</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Animation
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+        
+        // Focus on title field on page load
+        $('#id_title').focus();
+    });
+</script>
+{% endblock %} 

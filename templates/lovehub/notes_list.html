@@ -1,0 +1,350 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}یادداشت‌ها | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .note-card {
+        transition: all 0.3s;
+        border-radius: 12px;
+        overflow: hidden;
+        height: 100%;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+    
+    .note-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .note-card .card-header {
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .note-title {
+        font-weight: 500;
+        margin-bottom: 0;
+        color: var(--dark-color);
+    }
+    
+    .note-time {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .note-tag {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        margin-right: 0.25rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .note-tag.tag-personal {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+    }
+    
+    .note-tag.tag-shared {
+        background-color: rgba(25, 135, 84, 0.1);
+        color: #198754;
+    }
+    
+    .note-tag.tag-important {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .note-content {
+        max-height: 120px;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 1rem;
+    }
+    
+    .note-content::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        background: linear-gradient(transparent, white);
+    }
+    
+    .note-author {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .sidebar-sticky {
+        position: sticky;
+        top: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                <li class="breadcrumb-item active">یادداشت‌ها</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0"><i class="fas fa-sticky-note"></i> یادداشت‌های مشترک</h4>
+            <a href="{% url 'add_note' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> یادداشت جدید
+            </a>
+        </div>
+        <p class="text-muted">یادداشت‌های مهم خود را با همسرتان به اشتراک بگذارید.</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3 mb-4">
+        <div class="sidebar-sticky">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-filter"></i> فیلترها</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">دسته‌بندی</label>
+                        <div class="form-check">
+                            <input class="form-check-input filter-checkbox" type="checkbox" id="show-all" checked data-filter="all">
+                            <label class="form-check-label" for="show-all">همه</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input filter-checkbox" type="checkbox" id="show-shared" data-filter="shared">
+                            <label class="form-check-label" for="show-shared">مشترک</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input filter-checkbox" type="checkbox" id="show-personal" data-filter="personal">
+                            <label class="form-check-label" for="show-personal">شخصی</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input filter-checkbox" type="checkbox" id="show-important" data-filter="important">
+                            <label class="form-check-label" for="show-important">مهم</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">مرتب‌سازی</label>
+                        <select class="form-select" id="sort-notes">
+                            <option value="newest">جدیدترین</option>
+                            <option value="oldest">قدیمی‌ترین</option>
+                            <option value="title">بر اساس عنوان</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> راهنما</h5>
+                </div>
+                <div class="card-body">
+                    <p>در این بخش می‌توانید:</p>
+                    <ul>
+                        <li>یادداشت‌های مشترک یا شخصی ایجاد کنید</li>
+                        <li>یادداشت‌های مهم را علامت‌گذاری کنید</li>
+                        <li>یادداشت‌ها را با همسرتان به اشتراک بگذارید</li>
+                    </ul>
+                    <hr>
+                    <div class="d-grid">
+                        <a href="{% url 'add_note' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-plus"></i> افزودن یادداشت جدید
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notes List -->
+    <div class="col-md-9">
+        {% if notes %}
+            <div class="row" id="notes-container">
+                {% for note in notes %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card note-card" data-tags="{% if note.is_shared %}shared{% else %}personal{% endif %}{% if note.is_important %} important{% endif %}">
+                            <div class="card-header d-flex justify-content-between">
+                                <h6 class="note-title">{{ note.title }}</h6>
+                                <span class="note-time">{{ note.created_at|date:"Y/m/d" }}</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    {% if note.is_shared %}
+                                        <span class="note-tag tag-shared">مشترک</span>
+                                    {% else %}
+                                        <span class="note-tag tag-personal">شخصی</span>
+                                    {% endif %}
+                                    
+                                    {% if note.is_important %}
+                                        <span class="note-tag tag-important">مهم</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="note-content">
+                                    <p>{{ note.content }}</p>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="note-author">
+                                        <i class="fas fa-user"></i> {{ note.created_by.first_name }}
+                                    </span>
+                                    <a href="{% url 'note_detail' note.id %}" class="btn btn-sm btn-outline-primary">
+                                        مشاهده
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if notes.has_other_pages %}
+                <nav aria-label="پیمایش صفحات">
+                    <ul class="pagination justify-content-center">
+                        {% if notes.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ notes.previous_page_number }}">&laquo; قبلی</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">&laquo; قبلی</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in notes.paginator.page_range %}
+                            {% if notes.number == num %}
+                                <li class="page-item active">
+                                    <a class="page-link" href="#">{{ num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if notes.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ notes.next_page_number }}">بعدی &raquo;</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">بعدی &raquo;</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+            
+        {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-sticky-note fa-4x mb-3 text-muted"></i>
+                    <h4>هنوز یادداشتی ایجاد نشده است!</h4>
+                    <p class="text-muted">
+                        اولین یادداشت خود را ایجاد کنید و آن را با همسرتان به اشتراک بگذارید.
+                    </p>
+                    <a href="{% url 'add_note' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> ایجاد یادداشت جدید
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Filtering
+        $('.filter-checkbox').change(function() {
+            const filter = $(this).data('filter');
+            
+            // If "all" is checked, check only all and uncheck others
+            if (filter === 'all' && $(this).is(':checked')) {
+                $('.filter-checkbox').not(this).prop('checked', false);
+                showAllNotes();
+            }
+            // If a specific filter is checked, uncheck "all"
+            else {
+                $('#show-all').prop('checked', false);
+                applyFilters();
+            }
+            
+            // If no filter is checked, check "all"
+            if ($('.filter-checkbox:checked').length === 0) {
+                $('#show-all').prop('checked', true);
+                showAllNotes();
+            }
+        });
+        
+        function showAllNotes() {
+            $('.note-card').parent().show();
+        }
+        
+        function applyFilters() {
+            const showShared = $('#show-shared').is(':checked');
+            const showPersonal = $('#show-personal').is(':checked');
+            const showImportant = $('#show-important').is(':checked');
+            
+            if (!showShared && !showPersonal && !showImportant) {
+                showAllNotes();
+                return;
+            }
+            
+            $('.note-card').parent().hide();
+            
+            if (showShared) {
+                $('.note-card[data-tags*="shared"]').parent().show();
+            }
+            
+            if (showPersonal) {
+                $('.note-card[data-tags*="personal"]').parent().show();
+            }
+            
+            if (showImportant) {
+                $('.note-card[data-tags*="important"]').parent().show();
+            }
+        }
+        
+        // Sorting
+        $('#sort-notes').change(function() {
+            const sortValue = $(this).val();
+            const notesContainer = $('#notes-container');
+            const noteCards = $('.col-md-6').get();
+            
+            noteCards.sort(function(a, b) {
+                const cardA = $(a).find('.note-card');
+                const cardB = $(b).find('.note-card');
+                
+                if (sortValue === 'newest') {
+                    return $(cardB).find('.note-time').text().localeCompare($(cardA).find('.note-time').text());
+                }
+                else if (sortValue === 'oldest') {
+                    return $(cardA).find('.note-time').text().localeCompare($(cardB).find('.note-time').text());
+                }
+                else if (sortValue === 'title') {
+                    return $(cardA).find('.note-title').text().localeCompare($(cardB).find('.note-title').text());
+                }
+            });
+            
+            $.each(noteCards, function(index, card) {
+                notesContainer.append(card);
+            });
+        });
+    });
+</script>
+{% endblock %} 

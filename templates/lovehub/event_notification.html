@@ -1,0 +1,157 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}تنظیمات یادآوری رویداد | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notification-card {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: none;
+    }
+    
+    .notification-header {
+        padding: 2rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        position: relative;
+    }
+    
+    .notification-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(255, 255, 255, 0.2);
+        margin-bottom: 1.5rem;
+    }
+    
+    .notification-icon i {
+        font-size: 2rem;
+        color: white;
+    }
+    
+    .notification-content {
+        padding: 2rem;
+    }
+    
+    .notification-option {
+        margin-bottom: 1.5rem;
+    }
+    
+    .notification-option label {
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'events_list' %}">رویدادها</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'event_detail' event.id %}">{{ event.title }}</a></li>
+                <li class="breadcrumb-item active">تنظیمات یادآوری</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 mb-4">
+        <div class="card notification-card">
+            <div class="notification-header">
+                <div class="notification-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                
+                <h1 class="h3 mb-2">تنظیمات یادآوری رویداد</h1>
+                <p class="mb-0 opacity-75">{{ event.title }}</p>
+            </div>
+            
+            <div class="notification-content">
+                <form method="post" action="{% url 'enable_notification' event.id %}">
+                    {% csrf_token %}
+                    
+                    <div class="notification-option">
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="enable_notification" name="enable_notification" {% if event.enable_notification %}checked{% endif %}>
+                            <label class="form-check-label" for="enable_notification">فعال‌سازی یادآوری برای این رویداد</label>
+                        </div>
+                    </div>
+                    
+                    <div id="notification_options" {% if not event.enable_notification %}style="display: none;"{% endif %}>
+                        <div class="notification-option">
+                            <label for="notification_days" class="form-label">چند روز قبل از رویداد یادآوری شود؟</label>
+                            <select class="form-select" id="notification_days" name="notification_days">
+                                <option value="0" {% if event.notification_days == 0 %}selected{% endif %}>همان روز</option>
+                                <option value="1" {% if event.notification_days == 1 %}selected{% endif %}>1 روز قبل</option>
+                                <option value="2" {% if event.notification_days == 2 %}selected{% endif %}>2 روز قبل</option>
+                                <option value="3" {% if event.notification_days == 3 %}selected{% endif %}>3 روز قبل</option>
+                                <option value="7" {% if event.notification_days == 7 %}selected{% endif %}>1 هفته قبل</option>
+                                <option value="14" {% if event.notification_days == 14 %}selected{% endif %}>2 هفته قبل</option>
+                                <option value="30" {% if event.notification_days == 30 %}selected{% endif %}>1 ماه قبل</option>
+                            </select>
+                        </div>
+                        
+                        <div class="notification-option">
+                            <label for="notification_method" class="form-label">روش یادآوری</label>
+                            <select class="form-select" id="notification_method" name="notification_method">
+                                <option value="app" {% if event.notification_method == 'app' %}selected{% endif %}>فقط نوتیفیکیشن در برنامه</option>
+                                <option value="email" {% if event.notification_method == 'email' %}selected{% endif %}>فقط ایمیل</option>
+                                <option value="both" {% if event.notification_method == 'both' %}selected{% endif %}>هر دو</option>
+                            </select>
+                        </div>
+                        
+                        <div class="notification-option">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="notify_partner" name="notify_partner" {% if event.notify_partner %}checked{% endif %}>
+                                <label class="form-check-label" for="notify_partner">
+                                    به همسر شما نیز یادآوری شود
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> ذخیره تنظیمات
+                        </button>
+                        <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-times me-2"></i> انصراف
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const enableNotificationCheckbox = document.getElementById('enable_notification');
+        const notificationOptionsDiv = document.getElementById('notification_options');
+        
+        enableNotificationCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                notificationOptionsDiv.style.display = 'block';
+            } else {
+                notificationOptionsDiv.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,192 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}پذیرش دعوت | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .accept-section {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .accept-card {
+        background-color: #fff;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+    
+    .accept-header {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 20px;
+        text-align: center;
+    }
+    
+    .accept-body {
+        padding: 30px;
+    }
+    
+    .invite-code-input {
+        font-family: monospace;
+        letter-spacing: 2px;
+        text-align: center;
+    }
+    
+    .benefits-list {
+        margin-top: 20px;
+        padding-right: 20px;
+    }
+    
+    .benefits-list li {
+        margin-bottom: 10px;
+    }
+    
+    .connection-success {
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .success-icon {
+        font-size: 4rem;
+        color: var(--success);
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                    <li class="breadcrumb-item active">پذیرش دعوت</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="accept-section">
+        <div class="accept-card">
+            <div class="accept-header">
+                <h3 class="mb-0"><i class="fas fa-heart"></i> پذیرش دعوت به اسمارت لاو هاب</h3>
+            </div>
+            
+            <div class="accept-body">
+                {% if already_connected %}
+                    <div class="connection-success">
+                        <div class="success-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h4>شما قبلاً به همسرتان متصل شده‌اید</h4>
+                        <p class="text-muted">شما در حال حاضر به {{ partner.get_full_name|default:partner.username }} متصل هستید.</p>
+                        <a href="{% url 'dashboard' %}" class="btn btn-primary mt-3">
+                            <i class="fas fa-home"></i> بازگشت به داشبورد
+                        </a>
+                    </div>
+                {% elif invite_error %}
+                    <div class="alert alert-danger text-center">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {% if invite_error == 'invalid' %}
+                            کد دعوت نامعتبر است. لطفاً از کد صحیح استفاده کنید.
+                        {% elif invite_error == 'expired' %}
+                            این کد دعوت منقضی شده است. لطفاً از همسر خود بخواهید کد جدیدی ایجاد کند.
+                        {% elif invite_error == 'self' %}
+                            شما نمی‌توانید خودتان را به عنوان همسر انتخاب کنید!
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mt-4">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-4">
+                                <label for="inviteCode" class="form-label">کد دعوت را وارد کنید</label>
+                                <input type="text" class="form-control invite-code-input" id="inviteCode" name="invite_code" 
+                                       placeholder="مثال: INVITE-123-456789" required>
+                                <div class="form-text text-muted mt-2">
+                                    کد دعوتی که همسرتان برای شما ارسال کرده است را در اینجا وارد کنید.
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-check"></i> پذیرش دعوت
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                {% elif inviter %}
+                    <div class="text-center mb-4">
+                        <h4>دعوت‌نامه از طرف {{ inviter.get_full_name|default:inviter.username }}</h4>
+                        <p class="text-muted">شما به اشتراک‌گذاری اسمارت لاو هاب دعوت شده‌اید.</p>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        با پذیرش این دعوت، شما و {{ inviter.get_full_name|default:inviter.username }} در اسمارت لاو هاب به هم متصل می‌شوید
+                        و می‌توانید از امکانات مشترک استفاده کنید.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="invite_code" value="{{ invite_code }}">
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check"></i> پذیرش دعوت
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4">
+                        <h5>با پذیرش دعوت، به این امکانات دسترسی خواهید داشت:</h5>
+                        <ul class="benefits-list">
+                            <li>تقویم و رویدادهای مشترک</li>
+                            <li>به اشتراک‌گذاری حال و هوای روزانه</li>
+                            <li>ثبت و مشاهده لحظات خاص با هم</li>
+                            <li>یادداشت‌های مشترک</li>
+                            <li>و تمام امکانات دیگر!</li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <div>
+                        <h4 class="mb-4">وارد کردن کد دعوت</h4>
+                        <p>کد دعوتی که همسرتان برای شما ارسال کرده است را در کادر زیر وارد کنید:</p>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-4">
+                                <label for="inviteCode" class="form-label">کد دعوت</label>
+                                <input type="text" class="form-control invite-code-input" id="inviteCode" name="invite_code" 
+                                       placeholder="مثال: INVITE-123-456789" required {% if code %}value="{{ code }}"{% endif %}>
+                                <div class="form-text text-muted mt-2">
+                                    کد معمولاً با فرمت INVITE-XXX-XXXXXX می‌باشد.
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-check"></i> بررسی کد
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div class="mt-4">
+                            <h5>با پذیرش دعوت، به این امکانات دسترسی خواهید داشت:</h5>
+                            <ul class="benefits-list">
+                                <li>تقویم و رویدادهای مشترک</li>
+                                <li>به اشتراک‌گذاری حال و هوای روزانه</li>
+                                <li>ثبت و مشاهده لحظات خاص با هم</li>
+                                <li>یادداشت‌های مشترک</li>
+                                <li>و تمام امکانات دیگر!</li>
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

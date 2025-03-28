@@ -1,0 +1,49 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}ورود | اسمارت لاو هاب{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4 class="mb-0"><i class="fas fa-heart"></i> ورود به اسمارت لاو هاب</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <p>نام کاربری یا رمز عبور اشتباه است.</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">نام کاربری</label>
+                        <input type="text" name="username" id="id_username" class="form-control" required autofocus>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">رمز عبور</label>
+                        <input type="password" name="password" id="id_password" class="form-control" required>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> ورود
+                        </button>
+                    </div>
+                    
+                    <input type="hidden" name="next" value="{{ next }}">
+                </form>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <p>اسمارت لاو هاب، مخصوص شما و عزیزتان</p>
+            <p class="text-muted small">برای ثبت‌نام، با مدیر سیستم تماس بگیرید</p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

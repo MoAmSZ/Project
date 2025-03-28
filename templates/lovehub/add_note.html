@@ -1,0 +1,193 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}افزودن یادداشت | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .note-form {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .note-textarea {
+        min-height: 250px;
+        resize: vertical;
+    }
+    
+    .ck-editor__editable {
+        min-height: 250px;
+    }
+    
+    .note-preview {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-top: 1rem;
+        background-color: #f8f9fa;
+    }
+    
+    .note-preview-title {
+        font-weight: 500;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'notes_list' %}">یادداشت‌ها</a></li>
+                <li class="breadcrumb-item active">{% if edit_mode %}ویرایش یادداشت{% else %}افزودن یادداشت{% endif %}</li>
+            </ol>
+        </nav>
+        <h4 class="mb-3">
+            <i class="fas {% if edit_mode %}fa-edit{% else %}fa-plus-circle{% endif %}"></i> 
+            {% if edit_mode %}ویرایش یادداشت{% else %}افزودن یادداشت جدید{% endif %}
+        </h4>
+    </div>
+</div>
+
+<div class="note-form">
+    <form method="post" id="note-form"{% if edit_mode %} action="{% url 'edit_note' note.pk %}"{% endif %}>
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">مشخصات یادداشت</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="id_title" class="form-label">عنوان یادداشت <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="id_title" name="title" required value="{{ form.title.value|default:'' }}">
+                    {% if form.title.errors %}
+                        <div class="text-danger">
+                            {% for error in form.title.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="id_content" class="form-label">متن یادداشت <span class="text-danger">*</span></label>
+                    <textarea class="form-control note-textarea" id="id_content" name="content" rows="10" required>{{ form.content.value|default:'' }}</textarea>
+                    {% if form.content.errors %}
+                        <div class="text-danger">
+                            {% for error in form.content.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="id_is_shared" name="is_shared" {% if form.is_shared.value %}checked{% endif %}>
+                            <label class="form-check-label" for="id_is_shared">
+                                <i class="fas fa-users text-success"></i> به اشتراک گذاشتن با همسر
+                            </label>
+                            <div class="form-text">
+                                با انتخاب این گزینه، همسر شما می‌تواند این یادداشت را ببیند.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="id_is_important" name="is_important" {% if form.is_important.value %}checked{% endif %}>
+                            <label class="form-check-label" for="id_is_important">
+                                <i class="fas fa-exclamation-circle text-danger"></i> یادداشت مهم
+                            </label>
+                            <div class="form-text">
+                                با انتخاب این گزینه، این یادداشت به عنوان مهم علامت‌گذاری می‌شود.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4" id="preview-card" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">پیش‌نمایش یادداشت</h5>
+            </div>
+            <div class="card-body">
+                <div class="note-preview">
+                    <h5 class="note-preview-title" id="preview-title"></h5>
+                    <div id="preview-content"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between mb-4">
+            <a href="{% url 'notes_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right"></i> انصراف
+            </a>
+            <div>
+                <button type="button" id="preview-button" class="btn btn-outline-info me-2">
+                    <i class="fas fa-eye"></i> پیش‌نمایش
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> {% if edit_mode %}ذخیره تغییرات{% else %}ذخیره یادداشت{% endif %}
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-info-circle"></i> راهنما</h5>
+    </div>
+    <div class="card-body">
+        <h6>نکات مهم:</h6>
+        <ul>
+            <li>شما می‌توانید یادداشت‌های خود را شخصی یا به اشتراک گذاشته شده ایجاد کنید.</li>
+            <li>یادداشت‌های به اشتراک گذاشته شده برای شما و همسرتان قابل مشاهده هستند.</li>
+            <li>از ویژگی "یادداشت مهم" برای علامت‌گذاری یادداشت‌های مهم استفاده کنید.</li>
+            <li>می‌توانید از فرمت‌های متنی مختلف در متن یادداشت استفاده کنید.</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Instead of using CKEditor, make the plain textarea work for now
+        const contentField = document.querySelector('#id_content');
+        if (contentField) {
+            contentField.style.display = 'block';
+            contentField.style.minHeight = '250px';
+        }
+        
+        // Preview functionality
+        document.getElementById('preview-button').addEventListener('click', function() {
+            const title = document.getElementById('id_title').value;
+            const content = document.getElementById('id_content').value;
+            
+            if (title.trim() === '' && content.trim() === '') {
+                alert('لطفاً عنوان و متن یادداشت را وارد کنید.');
+                return;
+            }
+            
+            document.getElementById('preview-title').textContent = title;
+            document.getElementById('preview-content').innerHTML = content;
+            document.getElementById('preview-card').style.display = 'block';
+        });
+    });
+</script>
+{% endblock %} 

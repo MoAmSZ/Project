@@ -1,0 +1,272 @@
+{% extends "lovehub/base.html" %}
+{% load custom_filters %}
+
+{% block title %}ویرایش لحظه | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+<style>
+    #map {
+        height: 300px;
+        border-radius: 8px;
+    }
+    
+    .tag-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .tag-item {
+        background-color: rgba(var(--bs-primary-rgb), 0.15);
+        border-radius: 50px;
+        padding: 5px 15px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .tag-item:hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.3);
+    }
+    
+    .tag-item.selected {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .audio-preview {
+        margin-top: 10px;
+    }
+    
+    .image-preview {
+        max-height: 200px;
+        max-width: 100%;
+        border-radius: 8px;
+        margin-top: 10px;
+    }
+    
+    .preview-container {
+        text-align: center;
+        margin-top: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-edit"></i> ویرایش لحظه</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'edit_moment' moment.id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label">عنوان</label>
+                        <input type="text" class="form-control" id="title" name="title" required value="{{ moment.title }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">توضیحات</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" required>{{ moment.description }}</textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="image" class="form-label">تصویر (اختیاری)</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            <div class="preview-container">
+                                {% if moment.image %}
+                                    <img id="image-preview" src="{{ moment.image.url }}" class="image-preview" alt="پیش‌نمایش">
+                                    <p class="small text-muted mt-1">تصویر فعلی. برای تغییر، تصویر جدید انتخاب کنید.</p>
+                                {% else %}
+                                    <img id="image-preview" class="image-preview d-none" alt="پیش‌نمایش">
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="audio" class="form-label">صدا (اختیاری)</label>
+                            <input type="file" class="form-control" id="audio" name="audio" accept="audio/*">
+                            <div class="audio-preview {% if not moment.audio %}d-none{% endif %}">
+                                <audio controls class="w-100" id="audio-player">
+                                    {% if moment.audio %}
+                                        <source id="audio-source" src="{{ moment.audio.url }}" type="audio/mpeg">
+                                    {% else %}
+                                        <source id="audio-source" src="" type="audio/mpeg">
+                                    {% endif %}
+                                    Your browser does not support the audio element.
+                                </audio>
+                                {% if moment.audio %}
+                                    <p class="small text-muted mt-1">صدای فعلی. برای تغییر، صدای جدید انتخاب کنید.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">موقعیت مکانی (اختیاری)</label>
+                        <div class="input-group mb-2">
+                            <input type="text" class="form-control" id="location_name" name="location_name" placeholder="نام مکان..." value="{{ moment.location_name }}">
+                            <button class="btn btn-outline-secondary" type="button" id="get-location">
+                                <i class="fas fa-map-marker-alt"></i> موقعیت من
+                            </button>
+                        </div>
+                        <div id="map"></div>
+                        <input type="hidden" id="latitude" name="latitude" value="{{ moment.latitude|default:'' }}">
+                        <input type="hidden" id="longitude" name="longitude" value="{{ moment.longitude|default:'' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">تگ‌های حسی</label>
+                        <p class="text-muted small">چه حس و حالی از این لحظه دارید؟ می‌توانید چند مورد انتخاب کنید</p>
+                        <div class="tag-container">
+                            <div class="tag-item" data-tag="هیجان‌انگیز">هیجان‌انگیز 😮</div>
+                            <div class="tag-item" data-tag="آرامش‌بخش">آرامش‌بخش 😌</div>
+                            <div class="tag-item" data-tag="خنده‌دار">خنده‌دار 😂</div>
+                            <div class="tag-item" data-tag="عاشقانه">عاشقانه ❤️</div>
+                            <div class="tag-item" data-tag="غافلگیر‌کننده">غافلگیر‌کننده 😲</div>
+                            <div class="tag-item" data-tag="خاطره‌انگیز">خاطره‌انگیز 💭</div>
+                            <div class="tag-item" data-tag="شادی‌بخش">شادی‌بخش 😀</div>
+                            <div class="tag-item" data-tag="خاص">خاص ✨</div>
+                        </div>
+                        <input type="hidden" id="mood_tags" name="mood_tags" value="{{ moment.mood_tags }}">
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-save"></i> ذخیره تغییرات
+                        </button>
+                        <a href="{% url 'moment_detail' moment.id %}" class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-times"></i> انصراف
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<script>
+    $(document).ready(function() {
+        // Image preview
+        $('#image').change(function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#image-preview').attr('src', e.target.result).removeClass('d-none');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Audio preview
+        $('#audio').change(function() {
+            const file = this.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                $('#audio-source').attr('src', url);
+                $('#audio-player').get(0).load();
+                $('.audio-preview').removeClass('d-none');
+            }
+        });
+        
+        // Tags selection
+        let selectedTags = $('#mood_tags').val() ? $('#mood_tags').val().split(',') : [];
+        
+        // Pre-select existing tags
+        $('.tag-item').each(function() {
+            const tag = $(this).data('tag');
+            if (selectedTags.includes(tag)) {
+                $(this).addClass('selected');
+            }
+        });
+        
+        $('.tag-item').click(function() {
+            const tag = $(this).data('tag');
+            if ($(this).hasClass('selected')) {
+                $(this).removeClass('selected');
+                selectedTags = selectedTags.filter(t => t !== tag);
+            } else {
+                $(this).addClass('selected');
+                selectedTags.push(tag);
+            }
+            $('#mood_tags').val(selectedTags.join(','));
+        });
+        
+        // Initialize map
+        const map = L.map('map').setView([35.6892, 51.3890], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        let marker;
+        
+        // Set initial marker if coordinates exist
+        const initialLat = $('#latitude').val();
+        const initialLng = $('#longitude').val();
+        
+        if (initialLat && initialLng) {
+            const lat = parseFloat(initialLat);
+            const lng = parseFloat(initialLng);
+            
+            map.setView([lat, lng], 15);
+            
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else {
+                marker = L.marker([lat, lng]).addTo(map);
+            }
+            
+            marker.bindPopup($('#location_name').val() || 'انتخاب شده').openPopup();
+        }
+        
+        // Get current location
+        $('#get-location').click(function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    $('#latitude').val(lat);
+                    $('#longitude').val(lng);
+                    
+                    map.setView([lat, lng], 15);
+                    
+                    if (marker) {
+                        marker.setLatLng([lat, lng]);
+                    } else {
+                        marker = L.marker([lat, lng]).addTo(map);
+                    }
+                    
+                    marker.bindPopup('موقعیت شما').openPopup();
+                });
+            }
+        });
+        
+        // Map click handler
+        map.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            
+            $('#latitude').val(lat);
+            $('#longitude').val(lng);
+            
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else {
+                marker = L.marker([lat, lng]).addTo(map);
+            }
+            
+            marker.bindPopup($('#location_name').val() || 'انتخاب شده').openPopup();
+        });
+    });
+</script>
+{% endblock %} 

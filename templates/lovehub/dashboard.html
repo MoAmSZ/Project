@@ -1,0 +1,889 @@
+{% extends "lovehub/base.html" %}
+{% load static %}
+
+{% block title %}داشبورد | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .widget {
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+        background-color: var(--card-bg);
+        border: 1px solid var(--card-border);
+        transition: transform 0.3s, box-shadow 0.3s;
+        height: 100%;
+    }
+    
+    .widget:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .widget-header {
+        background-color: rgba(0,0,0,0.02);
+        padding: 1.25rem;
+        border-bottom: 1px solid var(--card-border);
+    }
+    
+    .widget-title {
+        font-weight: 600;
+        margin-bottom: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .widget-body {
+        padding: 1.5rem;
+    }
+    
+    .counter-widget {
+        text-align: center;
+        padding: 2rem;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .love-counter-container {
+        position: relative;
+        padding: 1rem 0;
+        z-index: 1;
+    }
+    
+    .love-counter-icon {
+        margin-bottom: 1rem;
+    }
+    
+    .love-counter-icon i {
+        font-size: 2rem;
+        color: #ff6b88;
+        animation: heartbeat 1.5s infinite;
+    }
+    
+    .counter-days-container {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .counter-days-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .counter-days {
+        font-size: 4rem;
+        font-weight: 700;
+        background: linear-gradient(45deg, #ff6b88, #a05195);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .counter-days-pulse {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,107,136,0.2) 0%, rgba(255,107,136,0) 70%);
+        z-index: 1;
+        animation: pulse 2s infinite;
+    }
+    
+    .counter-text {
+        font-size: 1.3rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #555;
+    }
+    
+    .counter-date {
+        font-size: 1rem;
+        color: #777;
+        background-color: rgba(255,107,136,0.1);
+        display: inline-block;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        margin-top: 0.5rem;
+    }
+    
+    .love-decorations {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        overflow: hidden;
+    }
+    
+    .love-sparkle {
+        position: absolute;
+        color: rgba(255,107,136,0.3);
+        font-size: 1rem;
+        z-index: 0;
+    }
+    
+    .love-sparkle.s1 {
+        top: 10%;
+        left: 15%;
+        animation: float 5s infinite ease-in-out;
+    }
+    
+    .love-sparkle.s2 {
+        top: 20%;
+        right: 15%;
+        animation: float 7s infinite ease-in-out;
+    }
+    
+    .love-sparkle.s3 {
+        bottom: 20%;
+        left: 10%;
+        animation: float 6s infinite ease-in-out;
+    }
+    
+    .love-sparkle.s4 {
+        bottom: 15%;
+        right: 10%;
+        animation: float 8s infinite ease-in-out;
+    }
+    
+    .love-sparkle.s5 {
+        top: 40%;
+        right: 30%;
+        animation: float 4s infinite ease-in-out;
+    }
+    
+    @keyframes heartbeat {
+        0% { transform: scale(1); }
+        5% { transform: scale(1.2); }
+        10% { transform: scale(1.1); }
+        15% { transform: scale(1.25); }
+        20% { transform: scale(1); }
+        100% { transform: scale(1); }
+    }
+    
+    @keyframes pulse {
+        0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.8; }
+        50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.4; }
+        100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.8; }
+    }
+    
+    @keyframes float {
+        0% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-10px) rotate(5deg); }
+        100% { transform: translateY(0) rotate(0deg); }
+    }
+    
+    .events-widget .event-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--card-border);
+    }
+    
+    .events-widget .event-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .events-widget .event-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .events-widget .event-icon.anniversary {
+        background-color: rgba(255, 107, 107, 0.1);
+        color: #ff6b6b;
+    }
+    
+    .events-widget .event-icon.birthday {
+        background-color: rgba(51, 154, 240, 0.1);
+        color: #339af0;
+    }
+    
+    .events-widget .event-icon.special {
+        background-color: rgba(151, 117, 250, 0.1);
+        color: #9775fa;
+    }
+    
+    .events-widget .event-icon.reminder {
+        background-color: rgba(81, 207, 102, 0.1);
+        color: #51cf66;
+    }
+    
+    .events-widget .event-content {
+        flex: 1;
+    }
+    
+    .events-widget .event-title {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    .events-widget .event-date {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .events-widget .event-days {
+        background-color: var(--primary-color);
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 500;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        margin-right: auto;
+    }
+    
+    .love-quote {
+        font-size: 1.1rem;
+        font-style: italic;
+        line-height: 1.6;
+    }
+    
+    .quote-author {
+        text-align: left;
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 1rem;
+    }
+    
+    .mood-widget .mood-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+    
+    .mood-widget .mood-box {
+        text-align: center;
+        width: 60px;
+    }
+    
+    .mood-widget .mood-emoji {
+        font-size: 2rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .mood-widget .mood-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    
+    .mood-widget .mood-box.active .mood-emoji {
+        transform: scale(1.2);
+    }
+    
+    .mood-widget .mood-box.active .mood-label {
+        font-weight: 500;
+        color: var(--dark-color);
+    }
+    
+    .message-widget .message-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .message-widget .message-bubble {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        padding: 1rem;
+        border-radius: 12px;
+        position: relative;
+    }
+    
+    .message-widget .message-time {
+        font-size: 0.75rem;
+        color: #6c757d;
+        text-align: left;
+        margin-top: 0.25rem;
+    }
+    
+    .message-widget .no-message {
+        text-align: center;
+        padding: 1rem;
+        background-color: rgba(0,0,0,0.02);
+        border-radius: 10px;
+        color: #6c757d;
+    }
+    
+    .this-day-widget .history-item {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--card-border);
+    }
+    
+    .this-day-widget .history-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    
+    .this-day-widget .history-title {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    .this-day-widget .history-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .latest-moment {
+        margin-bottom: 1rem;
+    }
+    
+    .latest-moment-img {
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+    
+    .latest-moment-img img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+    }
+    
+    .latest-moment-title {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    
+    .latest-moment-desc {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .latest-moment-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .stats-widget .stats-container {
+        display: flex;
+        justify-content: space-between;
+        text-align: center;
+        margin-top: 1rem;
+    }
+    
+    .stats-widget .stat-item {
+        flex: 1;
+    }
+    
+    .stats-widget .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+    
+    .stats-widget .stat-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .chart-container {
+        height: 200px;
+    }
+    
+    .challenge-text {
+        font-size: 1.1rem;
+        line-height: 1.5;
+        padding: 1rem;
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        border-radius: 10px;
+        margin-top: 1rem;
+    }
+    
+    .widget .btn-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .widget-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1.5rem;
+    }
+    
+    @media (max-width: 767.98px) {
+        .counter-days {
+            font-size: 3rem;
+        }
+        
+        .counter-days-pulse {
+            width: 100px;
+            height: 100px;
+        }
+        
+        .counter-text {
+            font-size: 1.1rem;
+        }
+        
+        .counter-date {
+            font-size: 0.9rem;
+        }
+        
+        .widget {
+            margin-bottom: 1rem;
+        }
+        
+        .stats-widget .stat-value {
+            font-size: 1.5rem;
+        }
+        
+        .mood-widget .mood-container {
+            gap: 0.75rem;
+        }
+        
+        .mood-widget .mood-box {
+            width: 50px;
+        }
+        
+        .mood-widget .mood-emoji {
+            font-size: 1.75rem;
+        }
+        
+        .widget-body {
+            padding: 1.25rem;
+        }
+    }
+    
+    @media (max-width: 575.98px) {
+        .counter-days {
+            font-size: 2.5rem;
+        }
+        
+        .counter-days-pulse {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .love-counter-icon i {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="fas fa-tachometer-alt"></i> داشبورد</h4>
+    <div>
+        <a href="{% url 'widget_settings' %}" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-cog"></i> تنظیمات ویجت‌ها
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for widget in widgets %}
+        {% if widget.is_enabled %}
+            {% if widget.widget_type == 'counter' %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="widget counter-widget">
+                        {% if widget_data.counter %}
+                            <div class="love-counter-container">
+                                <div class="love-counter-icon">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <div class="counter-days-container">
+                                    <div class="counter-days-wrapper">
+                                        <div class="counter-days">{{ widget_data.counter.days }}</div>
+                                        <div class="counter-days-pulse"></div>
+                                    </div>
+                                </div>
+                                <div class="counter-text">روز با هم بودن</div>
+                                <div class="counter-date">از {{ widget_data.counter.start_date|date:"Y/m/d" }}</div>
+                                <div class="love-decorations">
+                                    <span class="love-sparkle s1"><i class="fas fa-star"></i></span>
+                                    <span class="love-sparkle s2"><i class="fas fa-heart"></i></span>
+                                    <span class="love-sparkle s3"><i class="far fa-heart"></i></span>
+                                    <span class="love-sparkle s4"><i class="fas fa-star"></i></span>
+                                    <span class="love-sparkle s5"><i class="fas fa-heart"></i></span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-calendar-xmark fa-3x mb-3 text-muted"></i>
+                                <p>تاریخ شروع رابطه تنظیم نشده است.</p>
+                                <a href="{% url 'edit_profile' %}" class="btn btn-sm btn-outline-primary">تنظیم تاریخ رابطه</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if widget.widget_type == 'upcoming_events' %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="widget events-widget">
+                        <div class="widget-header">
+                            <h6 class="widget-title">
+                                <i class="fas fa-calendar-alt"></i>
+                                رویدادهای نزدیک
+                            </h6>
+                        </div>
+                        <div class="widget-body">
+                            {% if widget_data.upcoming_events %}
+                                {% for event in widget_data.upcoming_events %}
+                                    <div class="event-item">
+                                        <div class="event-icon {{ event.event_type }}">
+                                            {% if event.event_type == 'anniversary' %}
+                                                <i class="fas fa-heart"></i>
+                                            {% elif event.event_type == 'birthday' %}
+                                                <i class="fas fa-birthday-cake"></i>
+                                            {% elif event.event_type == 'special' %}
+                                                <i class="fas fa-star"></i>
+                                            {% elif event.event_type == 'reminder' %}
+                                                <i class="fas fa-bell"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div class="event-content">
+                                            <div class="event-title">{{ event.title }}</div>
+                                            <div class="event-date">{{ event.date|date:"Y/m/d" }}</div>
+                                        </div>
+                                        <div class="event-days">
+                                            {% if event.days_until == 0 %}
+                                                امروز
+                                            {% else %}
+                                                {{ event.days_until }} روز
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-calendar-xmark fa-3x mb-3 text-muted"></i>
+                                    <p>هیچ رویداد نزدیکی وجود ندارد.</p>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="widget-actions">
+                                <a href="{% url 'events_list' %}" class="btn-link">مشاهده همه <i class="fas fa-arrow-left"></i></a>
+                                <a href="{% url 'add_event' %}" class="btn-link">افزودن رویداد <i class="fas fa-plus"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if widget.widget_type == 'this_day' %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="widget this-day-widget">
+                        <div class="widget-header">
+                            <h6 class="widget-title">
+                                <i class="fas fa-history"></i>
+                                در این روز
+                            </h6>
+                        </div>
+                        <div class="widget-body">
+                            {% if widget_data.this_day.events or widget_data.this_day.moments %}
+                                {% for event in widget_data.this_day.events %}
+                                    <div class="history-item">
+                                        <div class="history-title">
+                                            <i class="fas fa-calendar-day text-primary me-2"></i>
+                                            {{ event.title }}
+                                        </div>
+                                        <div class="history-meta">
+                                            <span>{{ event.date|date:"Y/m/d" }}</span>
+                                            <span>{{ event.get_event_type_display }}</span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                                
+                                {% for moment in widget_data.this_day.moments %}
+                                    <div class="history-item">
+                                        <div class="history-title">
+                                            <i class="fas fa-camera text-info me-2"></i>
+                                            {{ moment.title }}
+                                        </div>
+                                        <div class="history-meta">
+                                            <span>{{ moment.date|date:"Y/m/d" }}</span>
+                                            <span>لحظه</span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-calendar-xmark fa-3x mb-3"></i>
+                                    <p>هیچ رویداد یا لحظه‌ای در این روز در سال‌های گذشته ثبت نشده است.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if widget.widget_type == 'latest_moment' %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="widget">
+                        <div class="widget-header">
+                            <h6 class="widget-title">
+                                <i class="fas fa-camera"></i>
+                                آخرین لحظه
+                            </h6>
+                        </div>
+                        <div class="widget-body">
+                            {% if widget_data.latest_moment %}
+                                <div class="latest-moment">
+                                    {% if widget_data.latest_moment.image %}
+                                        <div class="latest-moment-img">
+                                            <img src="{{ widget_data.latest_moment.image.url }}" alt="{{ widget_data.latest_moment.title }}">
+                                        </div>
+                                    {% endif %}
+                                    <div class="latest-moment-title">{{ widget_data.latest_moment.title }}</div>
+                                    <div class="latest-moment-desc">{{ widget_data.latest_moment.description|truncatechars:100 }}</div>
+                                    <div class="latest-moment-meta">
+                                        <span>{{ widget_data.latest_moment.date|date:"Y/m/d" }}</span>
+                                        <a href="{% url 'moment_detail' pk=widget_data.latest_moment.pk %}" class="btn-link">مشاهده <i class="fas fa-arrow-left"></i></a>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-camera fa-3x mb-3 text-muted"></i>
+                                    <p>هنوز لحظه‌ای ثبت نشده است.</p>
+                                    <a href="{% url 'add_moment' %}" class="btn btn-sm btn-outline-primary">ثبت اولین لحظه</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if widget.widget_type == 'love_quote' %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="widget">
+                        <div class="widget-header">
+                            <h6 class="widget-title">
+                                <i class="fas fa-quote-right"></i>
+                                نقل قول عاشقانه
+                            </h6>
+                        </div>
+                        <div class="widget-body">
+                            {% if widget_data.love_quote %}
+                                <div class="love-quote">
+                                    "{{ widget_data.love_quote.text }}"
+                                </div>
+                                {% if widget_data.love_quote.author %}
+                                    <div class="quote-author">
+                                        - {{ widget_data.love_quote.author }}
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-quote-right fa-3x mb-3 text-muted"></i>
+                                    <p>هیچ نقل قول عاشقانه‌ای یافت نشد.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if widget.widget_type == 'daily_mood' %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="widget mood-widget">
+                        <div class="widget-header">
+                            <h6 class="widget-title">
+                                <i class="fas fa-smile"></i>
+                                حال و هوای امروز
+                            </h6>
+                        </div>
+                        <div class="widget-body">
+                            {% if widget_data.daily_mood %}
+                                <div class="mood-container">
+                                    <div class="mood-box {% if widget_data.daily_mood.user_mood.mood == 'happy' %}active{% endif %}">
+                                        <div class="mood-emoji">
+                                            {% if widget_data.daily_mood.user_mood %}
+                                                {% if widget_data.daily_mood.user_mood.mood == '😊' %}😊
+                                                {% elif widget_data.daily_mood.user_mood.mood == '😍' %}😍
+                                                {% elif widget_data.daily_mood.user_mood.mood == '🤔' %}🤔
+                                                {% elif widget_data.daily_mood.user_mood.mood == '🙂' %}🙂
+                                                {% elif widget_data.daily_mood.user_mood.mood == '❤️' %}❤️
+                                                {% else %}😐
+                                                {% endif %}
+                                            {% else %}
+                                                ❓
+                                            {% endif %}
+                                        </div>
+                                        <div class="mood-label">شما</div>
+                                    </div>
+                                    
+                                    <div class="mood-box {% if widget_data.daily_mood.partner_mood.mood == 'happy' %}active{% endif %}">
+                                        <div class="mood-emoji">
+                                            {% if widget_data.daily_mood.partner_mood %}
+                                                {% if widget_data.daily_mood.partner_mood.mood == '😊' %}😊
+                                                {% elif widget_data.daily_mood.partner_mood.mood == '😍' %}😍
+                                                {% elif widget_data.daily_mood.partner_mood.mood == '🤔' %}🤔
+                                                {% elif widget_data.daily_mood.partner_mood.mood == '🙂' %}🙂
+                                                {% elif widget_data.daily_mood.partner_mood.mood == '❤️' %}❤️
+                                                {% else %}😐
+                                                {% endif %}
+                                            {% else %}
+                                                ❓
+                                            {% endif %}
+                                        </div>
+                                        <div class="mood-label">همسر</div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-smile fa-3x mb-3 text-muted"></i>
+                                    <p>حال و هوای امروز ثبت نشده است.</p>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="widget-actions">
+                                <a href="{% url 'track_mood' %}" class="btn-link">مشاهده بیشتر <i class="fas fa-arrow-left"></i></a>
+                                <a href="{% url 'update_mood' %}" class="btn-link">ثبت حال و هوا <i class="fas fa-plus"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if widget.widget_type == 'daily_message' %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="widget message-widget">
+                        <div class="widget-header">
+                            <h6 class="widget-title">
+                                <i class="fas fa-comment-dots"></i>
+                                پیام روزانه
+                            </h6>
+                        </div>
+                        <div class="widget-body">
+                            <div class="message-container">
+                                {% if widget_data.daily_message %}
+                                    {% if widget_data.daily_message.user_message %}
+                                        <div class="message-bubble">
+                                            {{ widget_data.daily_message.user_message.message }}
+                                            <div class="message-time">{{ widget_data.daily_message.user_message.date|time:"H:i" }} - شما</div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if widget_data.daily_message.partner_message %}
+                                        <div class="message-bubble">
+                                            {{ widget_data.daily_message.partner_message.message }}
+                                            <div class="message-time">{{ widget_data.daily_message.partner_message.date|time:"H:i" }} - همسر</div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if not widget_data.daily_message.user_message and not widget_data.daily_message.partner_message %}
+                                        <div class="no-message">
+                                            هنوز پیامی برای امروز ثبت نشده است
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="no-message">
+                                        هنوز پیامی برای امروز ثبت نشده است
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="widget-actions">
+                                <a href="{% url 'update_message' %}" class="btn-link">ارسال پیام <i class="fas fa-paper-plane"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if widget.widget_type == 'daily_challenge' %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="widget">
+                        <div class="widget-header">
+                            <h6 class="widget-title">
+                                <i class="fas fa-tasks"></i>
+                                چالش روزانه
+                            </h6>
+                        </div>
+                        <div class="widget-body">
+                            {% if widget_data.daily_challenge %}
+                                <div class="challenge-text">
+                                    {{ widget_data.daily_challenge }}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-tasks fa-3x mb-3 text-muted"></i>
+                                    <p>چالش روزانه‌ای برای امروز تعریف نشده است.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Render mood chart if data exists
+        if (document.getElementById('moodChart')) {
+            const ctx = document.getElementById('moodChart').getContext('2d');
+            const moodData = JSON.parse('{{ mood_data|escapejs }}');
+            
+            if (moodData && moodData.length > 0) {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: moodData.map(function(d) { return d.date; }),
+                        datasets: [{
+                            label: 'حال و هوا',
+                            data: moodData.map(function(d) { return d.value; }),
+                            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(),
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 10,
+                                ticks: {
+                                    stepSize: 2
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}

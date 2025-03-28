@@ -1,0 +1,538 @@
+{% extends "lovehub/base.html" %}
+{% load custom_filters %}
+
+{% block title %}نقشه خاطرات | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+<style>
+    /* Map header section */
+    .map-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .map-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 0 L100 50 L50 100 L0 50 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+        background-size: 20px;
+        opacity: 0.3;
+        pointer-events: none;
+    }
+
+    /* Map header buttons */
+    .map-header .btn {
+        position: relative;
+        z-index: 10;
+        cursor: pointer;
+    }
+
+    /* Map container */
+    #map {
+        height: 600px;
+        width: 100%;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        z-index: 1;
+    }
+    
+    /* Map card wrapper */
+    .map-wrapper {
+        position: relative;
+        margin-bottom: 2rem;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    /* Controls positioned over the map */
+    .map-controls {
+        background-color: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        border: 1px solid rgba(0,0,0,0.05);
+        position: relative;
+        z-index: 5;
+    }
+    
+    .map-actions {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 400;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .map-action-btn {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: var(--primary-color);
+        border: none;
+        transition: all 0.3s;
+    }
+    
+    .map-action-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        background: var(--primary-color);
+        color: white;
+    }
+    
+    /* Improved moment popup */
+    .moment-popup {
+        max-width: 300px;
+    }
+    
+    .moment-popup .moment-image {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 10px 10px 0 0;
+        margin-bottom: 15px;
+    }
+    
+    .moment-popup .moment-title {
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 8px;
+        color: var(--primary-color);
+    }
+    
+    .moment-popup .moment-date {
+        color: #777;
+        font-size: 13px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .moment-popup .moment-desc {
+        font-size: 14px;
+        margin-bottom: 15px;
+        line-height: 1.5;
+    }
+    
+    .moment-popup .moment-creator {
+        font-size: 13px;
+        margin-bottom: 15px;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .moment-popup .moment-link {
+        display: inline-block;
+        padding: 8px 15px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s;
+        text-align: center;
+        width: 100%;
+    }
+    
+    .moment-popup .moment-link:hover {
+        background: var(--secondary-color);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    /* Improved Leaflet popup styling */
+    .leaflet-popup-content-wrapper {
+        border-radius: 15px;
+        padding: 0;
+        overflow: hidden;
+    }
+    
+    .leaflet-popup-content {
+        margin: 0;
+        padding: 0;
+        width: 300px !important;
+    }
+    
+    .popup-content-wrapper {
+        padding: 15px;
+    }
+    
+    .leaflet-popup-tip-container {
+        margin-top: -2px;
+    }
+    
+    .leaflet-popup-close-button {
+        color: white !important;
+        margin: 5px !important;
+    }
+    
+    /* Custom marker */
+    .custom-marker-icon {
+        background-color: var(--primary-color);
+        border-radius: 50%;
+        text-align: center;
+        color: white;
+        font-weight: bold;
+        border: 3px solid white;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        transition: all 0.3s;
+    }
+    
+    .custom-marker-icon:hover {
+        background-color: var(--secondary-color);
+        transform: scale(1.2);
+    }
+    
+    /* Stats section */
+    .map-stats {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .map-stat-card {
+        flex: 1;
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+    }
+    
+    .map-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .map-stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin: 5px 0;
+    }
+    
+    .map-stat-label {
+        color: #777;
+        font-size: 0.9rem;
+    }
+    
+    .map-stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+        color: var(--secondary-color);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        #map {
+            height: 450px;
+        }
+        
+        .map-stats {
+            flex-direction: column;
+        }
+        
+        .map-actions {
+            bottom: 20px;
+            top: auto;
+            flex-direction: row;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Map header -->
+<div class="map-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb" class="mb-2">
+                <ol class="breadcrumb mb-0" style="color: rgba(255,255,255,0.8);">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-white">داشبورد</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'moments_list' %}" class="text-white">لحظات</a></li>
+                    <li class="breadcrumb-item active text-white" aria-current="page">نقشه خاطرات</li>
+                </ol>
+            </nav>
+            <h4 class="mb-2 d-flex align-items-center gap-2">
+                <i class="fas fa-map-marked-alt"></i> نقشه خاطرات و لحظه‌ها
+            </h4>
+            <p class="mb-0 opacity-75">مشاهده تمام خاطرات ثبت شده با موقعیت مکانی روی نقشه</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'moments_list' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-list me-2"></i> نمایش لیست
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="map-controls">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle text-primary me-3 fs-3"></i>
+                        <div>
+                            <h6 class="mb-1">راهنمای نقشه</h6>
+                            <p class="mb-0 text-muted">
+                                لحظات ثبت شده با موقعیت مکانی روی نقشه نمایش داده می‌شوند.
+                                برای دیدن جزئیات هر لحظه، روی نشانگر آن کلیک کنید.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <button id="get-location" class="btn btn-primary">
+                        <i class="fas fa-map-marker-alt me-2"></i> نمایش موقعیت من
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="map-wrapper">
+            <div id="map"></div>
+            
+            <div class="map-actions">
+                <button id="zoom-in" class="map-action-btn" title="بزرگنمایی">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button id="zoom-out" class="map-action-btn" title="کوچک‌نمایی">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button id="center-map" class="map-action-btn" title="مرکز نقشه">
+                    <i class="fas fa-crosshairs"></i>
+                </button>
+            </div>
+        </div>
+        
+        {% if moments.count == 0 %}
+        <div class="alert alert-info">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle fs-3 me-3"></i>
+                <div>
+                    <h6 class="mb-1">هیچ لحظه‌ای با موقعیت مکانی ثبت نشده است</h6>
+                    <p class="mb-0">برای ثبت لحظه با موقعیت مکانی، از بخش ثبت لحظه استفاده کنید.</p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="map-stats">
+            <div class="map-stat-card">
+                <div class="map-stat-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="map-stat-value">{{ moments.count }}</div>
+                <div class="map-stat-label">لحظه ثبت شده</div>
+            </div>
+            
+            <div class="map-stat-card">
+                <div class="map-stat-icon">
+                    <i class="fas fa-city"></i>
+                </div>
+                <div class="map-stat-value">{{ location_count }}</div>
+                <div class="map-stat-label">مکان منحصر به فرد</div>
+            </div>
+            
+            <div class="map-stat-card">
+                <div class="map-stat-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="map-stat-value">{{ earliest_date|date:"Y" }}</div>
+                <div class="map-stat-label">اولین سال ثبت</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize map with better styling
+        const map = L.map('map', {
+            zoomControl: false  // We'll add custom zoom controls
+        }).setView([35.6892, 51.3890], 5);
+        
+        // Add a beautiful map layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+        
+        // Initialize marker cluster group
+        const markers = L.markerClusterGroup({
+            showCoverageOnHover: false,
+            maxClusterRadius: 50,
+            iconCreateFunction: function(cluster) {
+                const count = cluster.getChildCount();
+                return L.divIcon({
+                    html: count,
+                    className: 'custom-marker-icon',
+                    iconSize: L.point(40, 40)
+                });
+            }
+        });
+        
+        // Add moment markers
+        const moments = [
+            {% for moment in moments %}
+                {
+                    id: {{ moment.id }},
+                    lat: {{ moment.latitude }},
+                    lng: {{ moment.longitude }},
+                    title: "{{ moment.title|escapejs }}",
+                    description: "{{ moment.description|truncatechars:100|escapejs }}",
+                    date: "{{ moment.date|date:'Y/m/d H:i' }}",
+                    locationName: "{{ moment.location_name|default:'موقعیت ناشناس'|escapejs }}",
+                    imageUrl: "{% if moment.image %}{{ moment.image.url }}{% endif %}",
+                    createdBy: "{{ moment.created_by.get_full_name|default:moment.created_by.username|escapejs }}"
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        // Add markers to cluster group
+        for (const moment of moments) {
+            // Custom marker
+            const marker = L.marker([moment.lat, moment.lng], {
+                icon: L.divIcon({
+                    html: '<i class="fas fa-camera"></i>',
+                    className: 'custom-marker-icon',
+                    iconSize: L.point(30, 30)
+                })
+            });
+            
+            // Create popup content
+            let popupContent = `<div class="moment-popup">`;
+            
+            if (moment.imageUrl) {
+                popupContent += `<img src="${moment.imageUrl}" class="moment-image" alt="${moment.title}">`;
+            }
+            
+            popupContent += `<div class="popup-content-wrapper">`;
+            popupContent += `
+                <div class="moment-title">${moment.title}</div>
+                <div class="moment-date">
+                    <span><i class="far fa-calendar-alt me-1"></i> ${moment.date}</span>
+                    <span><i class="fas fa-map-marker-alt me-1"></i> ${moment.locationName}</span>
+                </div>
+                <div class="moment-desc">${moment.description}</div>
+                <div class="moment-creator"><i class="fas fa-user-circle me-1"></i> ثبت شده توسط: ${moment.createdBy}</div>
+                <a href="/moments/${moment.id}/" class="moment-link">
+                    <i class="fas fa-eye me-1"></i> مشاهده جزئیات
+                </a>
+            `;
+            
+            popupContent += `</div></div>`;
+            
+            marker.bindPopup(popupContent, {
+                maxWidth: 300,
+                className: 'custom-popup'
+            });
+            
+            markers.addLayer(marker);
+        }
+        
+        // Add marker cluster to map
+        map.addLayer(markers);
+        
+        // Fit bounds if markers exist
+        if (moments.length > 0) {
+            setTimeout(() => {
+                map.fitBounds(markers.getBounds(), { padding: [50, 50] });
+            }, 100);
+        }
+        
+        // Custom zoom controls
+        $('#zoom-in').click(function() {
+            map.zoomIn();
+        });
+        
+        $('#zoom-out').click(function() {
+            map.zoomOut();
+        });
+        
+        $('#center-map').click(function() {
+            if (moments.length > 0) {
+                map.fitBounds(markers.getBounds(), { padding: [50, 50] });
+            }
+        });
+        
+        // Get current location button
+        $('#get-location').click(function() {
+            $(this).html('<i class="fas fa-spinner fa-spin me-2"></i> در حال یافتن موقعیت...');
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    map.setView([lat, lng], 15);
+                    
+                    // Use custom marker for current location
+                    const locationMarker = L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            html: '<i class="fas fa-map-pin"></i>',
+                            className: 'custom-marker-icon',
+                            iconSize: L.point(30, 30)
+                        })
+                    }).addTo(map);
+                    
+                    locationMarker.bindPopup('<b>موقعیت فعلی شما</b>')
+                        .openPopup();
+                    
+                    $('#get-location').html('<i class="fas fa-map-marker-alt me-2"></i> نمایش موقعیت من');
+                }, function(error) {
+                    let errorMessage = 'خطا در دریافت موقعیت';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = 'دسترسی به موقعیت مکانی رد شد.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = 'اطلاعات موقعیت مکانی در دسترس نیست.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = 'درخواست موقعیت مکانی با تایم‌اوت مواجه شد.';
+                            break;
+                    }
+                    
+                    alert(errorMessage);
+                    $('#get-location').html('<i class="fas fa-map-marker-alt me-2"></i> نمایش موقعیت من');
+                });
+            } else {
+                alert('مرورگر شما از سرویس موقعیت مکانی پشتیبانی نمی‌کند.');
+                $('#get-location').html('<i class="fas fa-map-marker-alt me-2"></i> نمایش موقعیت من');
+            }
+        });
+    });
+</script>
+{% endblock %} 

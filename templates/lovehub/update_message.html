@@ -1,0 +1,195 @@
+{% extends "lovehub/base.html" %}
+
+{% block title %}ارسال پیام روزانه | اسمارت لاو هاب{% endblock %}
+
+{% block extra_css %}
+<style>
+    .message-card {
+        background-color: var(--card-bg);
+        border-radius: 15px;
+        border: 1px solid var(--card-border);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        padding: 1.5rem;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .message-form {
+        margin-top: 1.5rem;
+    }
+    
+    .message-textarea {
+        border-radius: 10px;
+        padding: 1rem;
+        min-height: 150px;
+        resize: none;
+    }
+    
+    .partner-message {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        padding: 1.25rem;
+        border-radius: 15px;
+        margin-top: 1.5rem;
+        position: relative;
+    }
+    
+    .partner-message-time {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-align: left;
+        margin-top: 0.5rem;
+    }
+    
+    .partner-message-user {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .partner-message-user .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        margin-left: 0.75rem;
+        background-color: rgba(var(--bs-primary-rgb), 0.2);
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+    
+    .partner-message-user .name {
+        font-weight: 500;
+    }
+    
+    .emoji-picker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .emoji-item {
+        font-size: 1.5rem;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.15s, background-color 0.15s;
+        background-color: var(--card-bg);
+        border: 1px solid var(--card-border);
+    }
+    
+    .emoji-item:hover {
+        transform: scale(1.1);
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+    }
+    
+    @media (max-width: 767.98px) {
+        .message-card {
+            padding: 1.25rem;
+        }
+        
+        .emoji-item {
+            font-size: 1.25rem;
+            width: 36px;
+            height: 36px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                <li class="breadcrumb-item active">ارسال پیام روزانه</li>
+            </ol>
+        </nav>
+        
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0"><i class="fas fa-comment-dots"></i> ارسال پیام روزانه</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="message-card">
+            <p class="lead">با ارسال پیام روزانه با همسرتان در ارتباط باشید. این پیام در داشبورد هر دو نفر نمایش داده می‌شود.</p>
+            
+            {% if partner_message %}
+                <div class="partner-message">
+                    <div class="partner-message-user">
+                        <div class="avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="name">{{ partner_message.sender.get_full_name|default:partner_message.sender.username }}</div>
+                    </div>
+                    <div class="partner-message-text">
+                        {{ partner_message.message }}
+                    </div>
+                    <div class="partner-message-time">
+                        {{ partner_message.date|date:"Y/m/d" }} - {{ partner_message.date|time:"H:i" }}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <form method="post" class="message-form">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="emoji-picker" class="form-label">افزودن ایموجی:</label>
+                    <div class="emoji-picker">
+                        <div class="emoji-item" data-emoji="❤️">❤️</div>
+                        <div class="emoji-item" data-emoji="😍">😍</div>
+                        <div class="emoji-item" data-emoji="😘">😘</div>
+                        <div class="emoji-item" data-emoji="🥰">🥰</div>
+                        <div class="emoji-item" data-emoji="💕">💕</div>
+                        <div class="emoji-item" data-emoji="💖">💖</div>
+                        <div class="emoji-item" data-emoji="😊">😊</div>
+                        <div class="emoji-item" data-emoji="🌹">🌹</div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="message" class="form-label">پیام شما:</label>
+                    <textarea id="message" name="message" class="form-control message-textarea" placeholder="پیام خود را اینجا بنویسید...">{{ user_message.message }}</textarea>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> ارسال پیام
+                    </button>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i> انصراف
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Emoji picker functionality
+        const emojiItems = document.querySelectorAll('.emoji-item');
+        const messageTextarea = document.getElementById('message');
+        
+        emojiItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const emoji = this.getAttribute('data-emoji');
+                messageTextarea.value += emoji;
+                messageTextarea.focus();
+            });
+        });
+    });
+</script>
+{% endblock %} 
